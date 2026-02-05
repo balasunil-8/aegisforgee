@@ -1,0 +1,10 @@
+[
+  {"text": "' OR '1'='1 --", "label": "attack"},
+  {"text": "admin' OR '1'='1' --", "label": "attack"},
+  {"text": "<script>alert('xss')</script>", "label": "attack"},
+  {"text": "../../../../etc/passwd", "label": "attack"},
+  {"text": "GET /index.html HTTP/1.1", "label": "benign"},
+  {"text": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "label": "benign"},
+  {"text": "username=alice&action=view", "label": "benign"},
+  {"text": "curl http://example.com/file", "label": "attack"}
+]

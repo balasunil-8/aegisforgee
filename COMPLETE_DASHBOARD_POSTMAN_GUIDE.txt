@@ -1,0 +1,696 @@
+================================================================================
+VULNSHOP LAB - COMPLETE VISUAL DEMONSTRATION
+Using: Dashboard + Postman + Live API Testing
+================================================================================
+
+═══════════════════════════════════════════════════════════════════════════════
+SETUP: GET ALL THREE TOOLS RUNNING (2 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+PREREQUISITES - Open 3 Windows/Tabs:
+
+1. TERMINAL - Start the Vulnerable API
+   ─────────────────────────────────────
+   Command:
+   cd C:\vuln_api_testing
+   python vulnshop.py
+   
+   Result: API running on http://localhost:5000
+
+
+2. POSTMAN - Import Collection
+   ────────────────────────────────
+   Action:
+   - Open Postman
+   - File → Import
+   - Select: C:\vuln_api_testing\VulnShop_Collection.json
+   - Import environment: VulnShop_Environment.json
+   
+   Result: All 23 tests ready to run
+
+
+3. BROWSER - Open Dashboard
+   ────────────────────────────
+   Open: file:///C:/vuln_api_testing/Dashboard_Interactive.html
+   
+   Result: Live dashboard showing API data
+
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP-BY-STEP DEMONSTRATION
+═══════════════════════════════════════════════════════════════════════════════
+
+VULNERABILITY #1: API1 - BOLA (Broken Object Level Authorization)
+══════════════════════════════════════════════════════════════════════════════════
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ DASHBOARD STEP 1: Show the Data                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+On Dashboard_Interactive.html, navigate to "OWASP Vulnerabilities" tab:
+
+You'll see:
+  
+  ┌─────────────────────────────────────────────────────────────┐
+  │ API1: Broken Object Level Authorization (BOLA)              │
+  ├─────────────────────────────────────────────────────────────┤
+  │                                                              │
+  │ Description:                                                │
+  │ An attacker can access resources belonging to other users   │
+  │ by simply changing the resource ID in the URL.              │
+  │                                                              │
+  │ Example:                                                     │
+  │ • User1 is logged in                                         │
+  │ • User1 tries: GET /api/orders/2 (another user's order)    │
+  │ • Instead of 403, gets 200 with order data!                │
+  │                                                              │
+  │ Real Impact:                                                │
+  │ • See other users' purchase history                         │
+  │ • View payment information                                  │
+  │ • Access private documents                                  │
+  │ • Complete account information theft                        │
+  │                                                              │
+  └─────────────────────────────────────────────────────────────┘
+
+Say to students:
+  "Notice how the dashboard explains the vulnerability in plain English.
+   Now let's prove it's real by testing it in Postman."
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ POSTMAN STEP 2: Set Up the Test                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+In Postman LEFT PANEL, navigate to:
+  02 - API1:2023 BOLA
+  └─ BOLA - Read other user's order (User1 reads Order 2) EXPECT 403 (secure)
+
+Show in Postman main window:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ METHOD │ GET                                                      │
+├──────────────────────────────────────────────────────────────────┤
+│ URL    │ {{base_url}}/api/orders/2                               │
+│        │ → http://localhost:5000/api/orders/2                    │
+├──────────────────────────────────────────────────────────────────┤
+│ HEADERS                                                          │
+│  Authorization: Bearer {{access_token}}                          │
+│  (This is User1's JWT token - visible in Postman as variable)   │
+│                                                                  │
+│ BODY: (none - GET request)                                       │
+└──────────────────────────────────────────────────────────────────┘
+
+Explain:
+  "We're User1. We have a valid JWT token (you can see it in the header).
+   But we're trying to access Order #2, which belongs to User2.
+   The API SHOULD refuse with 403. Let's see what happens..."
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ POSTMAN STEP 3: Send the Request & Show the VULNERABLE Response           ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+ACTION: Click "Send" button in Postman
+
+RESULT (RIGHT SIDE - Response): 
+
+┌──────────────────────────────────────────────────────────────────┐
+│ 200 OK                        [RED BOX - This should be 403!]   │
+├──────────────────────────────────────────────────────────────────┤
+│ BODY (JSON):                                                     │
+│                                                                  │
+│ {                                                                │
+│   "ok": true,                                                    │
+│   "order": {                                                     │
+│     "id": 2,                                                      │
+│     "user_id": 2,          ← This belongs to USER2!             │
+│     "product_id": 2,                                             │
+│     "quantity": 2,                                               │
+│     "status": "CREATED",                                         │
+│     "created_at": 1770282627                                     │
+│   }                                                              │
+│ }                                                                │
+│                                                                  │
+│ STATUS CODE: 200 ✗ VULNERABLE!                                 │
+│ EXPECTED:    403 ✗ (should have blocked me)                    │
+└──────────────────────────────────────────────────────────────────┘
+
+HIGHLIGHT: Look at "user_id": 2 - this order belongs to User2,
+but User1 (that's us) can SEE it! This is the vulnerability!
+
+Say to students:
+  "User1 just read User2's order. Without any permission!
+   In the real world, this could be someone's credit card number,
+   shipping address, medical information, etc."
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ DASHBOARD STEP 4: Show the Attack Impact Visual                           ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Go back to Dashboard, scroll down to "Attack Demonstrations":
+
+You'll see a box:
+
+┌─────────────────────────────────────────────────────────────┐
+│ BOLA ATTACK DEMO                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│ Step 1: User1 logs in                                        │
+│   POST /api/auth/login                                       │
+│   Response: {"access_token": "eyJhbGci..."}                  │
+│                                                              │
+│ Step 2: Attacker enumerates user IDs (1, 2, 3, ...)         │
+│   GET /api/users/1, /api/users/2, /api/users/3             │
+│                                                              │
+│ Step 3: ALL RETURN 200 + data (VULNERABLE!)                 │
+│   {"id": 2, "name": "User Two", "email": "user2@..."}       │
+│   {"id": 3, "name": "User Three", "email": "..."}           │
+│                                                              │
+│ Step 4: Attacker harvests all data                           │
+│   • All user profiles                                        │
+│   • All orders                                               │
+│   • All personal information                                 │
+│                                                              │
+│ Fix Applied in Secure Version:                              │
+│   if user.id != resource.owner_id and user.role != "admin": │
+│       return 403  ← ONLY users can see their OWN data       │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+
+Point to this and explain how the attack works step-by-step.
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ LIVE API TEST STEP 5: Try Different Order IDs                             ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Back in Postman, modify the URL:
+
+Change: /api/orders/2
+To:     /api/orders/3
+Click:  Send
+
+Result: 200 OK - Returns order ID 3 data (another user's order!)
+
+Repeat with /api/orders/4, /api/orders/5, etc.
+
+Each returns 200 with that user's order!
+
+Demonstrate:
+  "As User1, we can read orders 1, 2, 3, 4, 5... literally ANY order.
+   This is enumeration + BOLA combined - an attacker's paradise!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+VULNERABILITY #2: API3 - Mass Assignment & Password Exposure
+══════════════════════════════════════════════════════════════════════════════════
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ DASHBOARD: Explain Mass Assignment                                        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+In Dashboard, go to:
+  API3: Broken Object Property Level Authorization
+  └─ Mass Assignment & Data Exposure
+
+Shows:
+  "What if a normal user sent: {"is_admin": true} in a PATCH request?
+   The vulnerable API blindly applies ALL fields without checking.
+   Result: Normal user becomes admin!
+   
+   Also: Passwords are exposed in API responses (should never happen)."
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ POSTMAN: Test Mass Assignment Attack                                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Navigate to:
+  04 - API3:2023 Broken Object Property Level Authorization
+  └─ Mass Assignment - Escalate to admin via PATCH
+
+In Postman, show the request:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ METHOD │ PATCH                                                    │
+├──────────────────────────────────────────────────────────────────┤
+│ URL    │ {{base_url}}/api/users/1                                │
+│        │ → http://localhost:5000/api/users/1                     │
+├──────────────────────────────────────────────────────────────────┤
+│ BODY (JSON):                                                     │
+│ {                                                                │
+│   "is_admin": true,           ← Attacker tries to become admin!  │
+│   "role": "admin"             ← A normal user should NOT have   │
+│                                  permission to change this!      │
+│ }                                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+Say:
+  "A normal user sends this PATCH. They're trying to make themselves
+   an admin by including 'is_admin': true in the request body.
+   The vulnerable API doesn't check - it just applies all fields!"
+
+Click "Send":
+
+Response (VULNERABLE):
+┌──────────────────────────────────────────────────────────────────┐
+│ 200 OK                                                           │
+├──────────────────────────────────────────────────────────────────┤
+│ {                                                                │
+│   "ok": true,                                                    │
+│   "user": {                                                      │
+│     "id": 1,                                                      │
+│     "email": "user1@example.com",                                │
+│     "name": "User One",                                          │
+│     "is_admin": true,       ← SUCCESS! Now they're admin!       │
+│     "role": "admin"         ← Privilege escalation worked!      │
+│   }                                                              │
+│ }                                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+HIGHLIGHT IN RED:
+  "is_admin": true - The user is now an admin! They escalated!
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ POSTMAN: Test Password Exposure                                           ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Navigate to:
+  04 - API3:2023 Broken Object Property Level Authorization
+  └─ Excessive Data Exposure - User object contains password
+
+In Postman:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ METHOD │ GET                                                      │
+├──────────────────────────────────────────────────────────────────┤
+│ URL    │ {{base_url}}/api/users/1                                │
+│        │ → http://localhost:5000/api/users/1                     │
+└──────────────────────────────────────────────────────────────────┘
+
+Click "Send":
+
+Response (VULNERABLE):
+┌──────────────────────────────────────────────────────────────────┐
+│ 200 OK                                                           │
+├──────────────────────────────────────────────────────────────────┤
+│ {                                                                │
+│   "ok": true,                                                    │
+│   "user": {                                                      │
+│     "id": 1,                                                      │
+│     "email": "user1@example.com",                                │
+│     "name": "User One",                                          │
+│     "password": "Password123",   ← PASSWORDS LEAKED!            │
+│     "is_admin": true,           ← From our attack above!        │
+│     "role": "admin"                                              │
+│   }                                                              │
+│ }                                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+HIGHLIGHT IN RED:
+  "password": "Password123" - This should NEVER be in an API response!
+
+
+Say to students:
+  "Two critical failures here:
+   1. The API exposed the plain-text password
+   2. We successfully escalated to admin
+   Both in ONE request! This is devastating."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+VULNERABILITY #3: API4 - No Rate Limits
+══════════════════════════════════════════════════════════════════════════════════
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ DASHBOARD: Explain Resource Exhaustion                                    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+In Dashboard:
+  API4: Unrestricted Resource Consumption
+  
+Shows:
+  "What if an attacker requested ALL products at once?
+   GET /api/products?limit=999999
+   
+   The API should reject (limit > 100).
+   But the vulnerable version accepts it!
+   
+   Result: Database is hammered, API slows down for real users.
+   This is a Denial of Service (DoS) attack."
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ POSTMAN: Test the Attack                                                  ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Navigate to:
+  05 - API4:2023 Unrestricted Resource Consumption
+  └─ Huge limit parameter EXPECT 400/limited (secure)
+
+In Postman:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ METHOD │ GET                                                      │
+├──────────────────────────────────────────────────────────────────┤
+│ URL    │ {{base_url}}/api/products?limit=999999&offset=0         │
+│        │ ↑ Notice the HUGE limit value!                          │
+└──────────────────────────────────────────────────────────────────┘
+
+Say:
+  "We're requesting 999,999 products. This should be rejected.
+   A sane API would say 'max limit is 100'. Let's see what happens..."
+
+Click "Send":
+
+Response (VULNERABLE):
+┌──────────────────────────────────────────────────────────────────┐
+│ 200 OK                        [WRONG! Should be 400]            │
+├──────────────────────────────────────────────────────────────────┤
+│ {                                                                │
+│   "ok": true,                                                    │
+│   "count": 3,                 ← Only 3 products in database      │
+│   "products": [                                                  │
+│     {"id": 1, "name": "Laptop", ...},                           │
+│     {"id": 2, "name": "Headphones", ...},                       │
+│     {"id": 3, "name": "Phone", ...}                             │
+│   ]                                                              │
+│ }                                                                │
+│                                                                  │
+│ STATUS: 200 ✗ (Should have rejected with 400!)                 │
+│ LIMIT: 999999 ✗ (Accepted without validation)                  │
+└──────────────────────────────────────────────────────────────────┘
+
+Say:
+  "The API accepted the huge limit! In production with millions of
+   products, this would cause a Denial of Service. The server would
+   be busy processing 999,999 items, unable to serve other users."
+
+Try different huge values:
+  Change limit to: 9999999, 99999999, etc.
+  All are accepted!
+
+Real-world impact box on Dashboard explains:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Real-World Impact:                                           │
+  │ • Attacker can request millions of records                   │
+  │ • Database query times out                                   │
+  │ • API becomes slow/unresponsive                              │
+  │ • Legitimate users can't use the service                     │
+  │ • This is a Denial of Service (DoS) attack                   │
+  │                                                              │
+  │ Fix: Enforce max limits                                      │
+  │   if limit > 100:                                            │
+  │       return 400, "Limit must be <= 100"                     │
+  └─────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+VULNERABILITY #4: API7 - SSRF (Server-Side Request Forgery)
+══════════════════════════════════════════════════════════════════════════════════
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ DASHBOARD: Explain SSRF                                                   ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+In Dashboard:
+  API7: Server-Side Request Forgery (SSRF)
+  
+Shows diagram:
+  ┌─────────────┐
+  │  Attacker   │
+  └─────────────┘
+         │ Sends request to:
+         │ POST /api/utils/fetch-url
+         │ {"url": "http://127.0.0.1:5000/api/health"}
+         ↓
+  ┌──────────────────────────┐
+  │ Vulnerable API Server    │
+  │ (Runs on 127.0.0.1)      │
+  └──────────────────────────┘
+         │ Makes request to 127.0.0.1
+         ↓ (Itself! Attacker forced it)
+  ┌──────────────────────────┐
+  │ Internal/Private Data    │
+  │ (Admin panels, config)   │
+  └──────────────────────────┘
+         │ Returns data
+         ↓
+  ┌─────────────┐
+  │  Attacker   │ Gets access to internal systems!
+  └─────────────┘
+
+Explains:
+  "An attacker tricks the server into making requests to internal URLs.
+   The server can access private networks (127.0.0.1, 192.168.x.x).
+   Attacker gets back data they shouldn't have access to."
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ POSTMAN: Test SSRF Attack                                                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Navigate to:
+  08 - API7:2023 SSRF
+  └─ SSRF - fetch internal URL EXPECT blocked (secure)
+
+In Postman:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ METHOD │ POST                                                     │
+├──────────────────────────────────────────────────────────────────┤
+│ URL    │ {{base_url}}/api/utils/fetch-url                         │
+│        │ → http://localhost:5000/api/utils/fetch-url             │
+├──────────────────────────────────────────────────────────────────┤
+│ BODY (JSON):                                                     │
+│ {                                                                │
+│   "url": "http://127.0.0.1:5000/api/health"                     │
+│         ↑ Internal URL (only server should access)              │
+│ }                                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+Say:
+  "We're asking the API to fetch an internal URL (127.0.0.1).
+   A secure API should refuse: 'I cannot access internal networks!'
+   Let's see what the vulnerable API does..."
+
+Click "Send":
+
+Response (VULNERABLE):
+┌──────────────────────────────────────────────────────────────────┐
+│ 200 OK                        [WRONG! Should be 403/blocked]     │
+├──────────────────────────────────────────────────────────────────┤
+│ {                                                                │
+│   "ok": true,                                                    │
+│   "content": "{\"ok\":true, \"service\":\"VulnShop API\", ...}"  │
+│                     ↑ Data from http://127.0.0.1:5000/api/health│
+│                     ↑ The server made a request to itself!       │
+│ }                                                                │
+└──────────────────────────────────────────────────────────────────┘
+
+Say (with emphasis):
+  "The API made a request to itself and returned the data!
+   
+   But what if instead of /api/health, we asked for:
+   • http://192.168.1.1/admin  (router admin panel)
+   • http://127.0.0.1:22  (SSH port)
+   • http://169.254.169.254/latest/meta-data  (AWS credentials!)
+   
+   This is severe and could leak critical infrastructure data!"
+
+Try other URLs:
+  Change to: http://169.254.169.254
+  (This is AWS metadata server - contains credentials in real AWS)
+
+Dashboard shows:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Real Attacks:                                                │
+  │ • Access internal admin panels                              │
+  │ • Access databases (if on local network)                    │
+  │ • Steal cloud provider credentials (AWS metadata)           │
+  │ • Access private APIs inside company network                │
+  │ • Port scanning internal infrastructure                      │
+  └─────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+RUN ALL 23 TESTS AT ONCE (For Quick Overview)
+═══════════════════════════════════════════════════════════════════════════════
+
+Go back to Postman:
+  
+ON LEFT PANEL: Right-click on collection folder
+  "VulnShop API Top 10 - Postman Lab..."
+  
+SELECT: "Run collection" → Opens Collection Runner
+
+CLICK: "Run VulnShop API Top 10..."
+
+SHOW students:
+  - Tests execute one by one
+  - Green PASS checkmarks for secure behaviors
+  - Red FAIL X marks for vulnerable behaviors
+  - Response times for each endpoint
+  - Final summary: "35 / 50 tests passed" (as an example)
+
+While running, point to Dashboard and say:
+  "Each test corresponds to a vulnerability explained on the dashboard.
+   Red X = vulnerability confirmed. Green check = security working.
+   This is how we validate our security!!"
+
+AFTER COMPLETION:
+  Show results table:
+  - API1: 2 FAIL (BOLA confirmed)
+  - API2: 2 PASS (Auth working)
+  - API3: 2 FAIL (Mass assignment confirmed)
+  - API4: 1 FAIL (No rate limits)
+  - API5: 2 FAIL (Function auth missing)
+  - API6: 1 FAIL (Business logic bypass)
+  - API7: 1 FAIL (SSRF works)
+  - API8: 1 PASS (CORS working)
+  - API9: 1 FAIL (Debug endpoint exposed)
+  - API10: 1 FAIL (3rd party trust issue)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+SWITCH TO SECURE VERSION & DEMONSTRATE FIXES
+═══════════════════════════════════════════════════════════════════════════════
+
+Back in TERMINAL:
+  Press CTRL+C to stop vulnerable API
+  
+Result:
+  Keyboard/Interrupt detected
+  Server stops
+
+START SECURE VERSION:
+  python secure_vulnshop.py
+  
+Result:
+  Running on http://127.0.0.1:5000
+
+Now in Postman:
+  
+IMPORTANT: No need to reimport - same environment, same tests!
+
+TRY THE SAME TESTS with secure API:
+
+Test 1: BOLA Attack (Read Order 2 as User1)
+  Same Postman request as before
+  Click "Send"
+  
+Result (SECURE):
+  403 Forbidden ← BLOCKED!
+  {"error": "Forbidden"}
+  
+Say:
+  "Now it returns 403! User1 can't read User2's order anymore.
+   The ownership check prevented this vulnerability."
+
+
+Test 2: Mass Assignment (Try to escalate to admin)
+  Same PATCH request as before
+  Click "Send"
+  
+Result (SECURE):
+  200 OK (request succeeds, looks good)
+  But check the response:
+  {"is_admin": false, "role": "user"}  ← NOT CHANGED!
+  
+Say:
+  "The API accepted the request but IGNORED the dangerous fields.
+   The is_admin and role fields stayed false/user.
+   The allowlist approach silently blocks mass assignment!"
+
+
+Test 3: SSRF Attack (Fetch internal URL)
+  Same request: {"url": "http://127.0.0.1:5000/api/health"}
+  Click "Send"
+  
+Result (SECURE):
+  403 Forbidden ← BLOCKED!
+  {"error": "SSRF protection: localhost/private IPs blocked"}
+  
+Say:
+  "The secure API refuses to fetch internal URLs.
+   Any localhost or private IP gets blocked immediately.
+   SSRF attacks are now impossible."
+
+
+RUN COLLECTION AGAIN AGAINST SECURE API:
+  Collection Runner → Run again
+  
+Show results:
+  Compare before/after:
+  
+  VULNERABLE: 10 FAIL, 13 PASS
+  SECURE:      2 FAIL,  21 PASS  ← Much better!
+  
+Point to Dashboard and explain:
+  "Each PASS now = security working. Each FAIL = exploit prevented.
+   This is why secure coding matters!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FINAL EXPLANATION TO STUDENTS
+═══════════════════════════════════════════════════════════════════════════════
+
+Recap using all three tools:
+
+"Here's what we just demonstrated:
+
+1. DASHBOARD showed us WHAT could go wrong (explanations + diagrams)
+
+2. POSTMAN showed us HOW to test it (send requests, see responses)
+
+3. LIVE API showed us IT'S REAL (we saw the vulnerabilities in action)
+
+4. SECURE VERSION showed us THE FIX (same tests, better results)
+
+The key lesson:
+  Security isn't complicated. It's about:
+  ✓ Checking ownership (BOLA fix)
+  ✓ Validating input (rate limiting fix)
+  ✓ Allowing-listing fields (mass assignment fix)
+  ✓ Blocking dangerous URLs (SSRF fix)
+  ✓ NOT exposing passwords (data exposure fix)
+
+You can apply these patterns to ANY API:
+  • Always verify ownership
+  • Always validate and cap resource consumption
+  • Always use allowlists for updates
+  • Always check user permissions
+  • Always remove sensitive data from responses
+
+Next time you build an API, remember these 10 vulnerabilities
+and apply the fixes. That's how you build secure systems."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+SUMMARY TABLE: Dashboard + Postman + Live Testing
+═══════════════════════════════════════════════════════════════════════════════
+
+┌──────────┬──────────────────────┬────────────────────┬─────────────────────┐
+│ Tool     │ Purpose              │ Shows              │ Student Learns      │
+├──────────┼──────────────────────┼────────────────────┼─────────────────────┤
+│ DASHBOARD│ Conceptual           │ What/Why           │ Theory & impact     │
+│          │ explanation          │ vulnerabilities    │                     │
+│          │                      │ & fixes            │                     │
+├──────────┼──────────────────────┼────────────────────┼─────────────────────┤
+│ POSTMAN  │ Practical testing    │ How to test        │ Testing skills      │
+│          │ visualization        │ Requests/responses │ Request craft       │
+│          │ Automated runner     │ Pass/Fail results  │ Automation          │
+├──────────┼──────────────────────┼────────────────────┼─────────────────────┤
+│ LIVE API │ Real execution       │ It's actually real │ Problem solving     │
+│          │ Proof of concept     │ (Not theoretical)  │ Debugging           │
+│          │ Before/After compare │ Vulnerable→Secure  │ Code review         │
+└──────────┴──────────────────────┴────────────────────┴─────────────────────┘
+
+This combination is POWERFUL because:
+  • No guessing (we proved it works)
+  • Visual learning (Dashboard + Postman UI)
+  • Hands-on testing (real API responses)
+  • Before/After (showing improvements)
+  • Repeatable (students can do this at home)

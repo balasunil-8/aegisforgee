@@ -1,0 +1,589 @@
+{
+  "info": {
+    "name": "SecurityForge API Top 10 - Postman Lab (PASS=Secure, FAIL=Vulnerable)",
+    "_postman_id": "vulnshop-api-top10-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{access_token}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 - Setup",
+      "item": [
+        {
+          "name": "Reset DB (unsafe on purpose)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/setup/reset", "host": ["{{base_url}}"], "path": ["api", "setup", "reset"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Reset returns 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "Login User1 (save token_user1 + access_token)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_user1}}\",\n  \"password\": \"{{pass_user1}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login User1 status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('token_user1', j.access_token);",
+                  "pm.environment.set('access_token', j.access_token);",
+                  "if (j.user && j.user.id) pm.environment.set('user1_id', String(j.user.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login User2 (save token_user2)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_user2}}\",\n  \"password\": \"{{pass_user2}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login User2 status 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('token_user2', j.access_token);",
+                  "if (j.user && j.user.id) pm.environment.set('user2_id', String(j.user.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Switch Auth -> User1",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/health", "host": ["{{base_url}}"], "path": ["api", "health"] }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "exec": ["pm.environment.set('access_token', pm.environment.get('token_user1') || '');"] } },
+            { "listen": "test", "script": { "exec": ["pm.test('Switched to User1 token (health ok)', ()=> pm.response.to.have.status(200));"] } }
+          ]
+        },
+        {
+          "name": "Switch Auth -> User2",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/health", "host": ["{{base_url}}"], "path": ["api", "health"] }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "exec": ["pm.environment.set('access_token', pm.environment.get('token_user2') || '');"] } },
+            { "listen": "test", "script": { "exec": ["pm.test('Switched to User2 token (health ok)', ()=> pm.response.to.have.status(200));"] } }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "02 - API1:2023 BOLA (Broken Object Level Authorization)",
+      "item": [
+        {
+          "name": "BOLA - Read other user's order (User1 reads Order 2) EXPECT 403 (secure)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/orders/2", "host": ["{{base_url}}"], "path": ["api", "orders", "2"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// PASS = secure behavior (403). FAIL = vulnerable behavior (200 + data).",
+                  "if (pm.response.code === 403) {",
+                  "  pm.test('PASS (secure): server blocked cross-user order access (403)', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): server allowed cross-user order access', () => false);",
+                  "  pm.environment.set('API1_BOLA', 'VULNERABLE');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOLA - Read other user's profile (User1 reads User2) EXPECT 403 (secure)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/users/{{user2_id}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{user2_id}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 403) {",
+                  "  pm.test('PASS (secure): server blocked cross-user profile access (403)', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): server allowed cross-user profile access', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "03 - API2:2023 Broken Authentication",
+      "item": [
+        {
+          "name": "Auth check - Protected endpoint WITHOUT token EXPECT 401/422 (secure)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/orders/1", "host": ["{{base_url}}"], "path": ["api", "orders", "1"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const c = pm.response.code;",
+                  "if (c === 401 || c === 422) {",
+                  "  pm.test('PASS (secure): missing token rejected', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): missing token was accepted', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Auth check - Tampered/garbage token EXPECT 401/422 (secure)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/orders/1", "host": ["{{base_url}}"], "path": ["api", "orders", "1"] }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": { "exec": ["pm.environment.set('access_token', 'this.is.not.a.jwt');"] }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const c = pm.response.code;",
+                  "if (c === 401 || c === 422) {",
+                  "  pm.test('PASS (secure): tampered token rejected', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): tampered token accepted', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restore token -> User1 (so remaining labs work)",
+          "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/health", "host": ["{{base_url}}"], "path": ["api", "health"] } },
+          "event": [
+            { "listen": "prerequest", "script": { "exec": ["pm.environment.set('access_token', pm.environment.get('token_user1') || '');"] } },
+            { "listen": "test", "script": { "exec": ["pm.test('Token restored (health ok)', ()=> pm.response.to.have.status(200));"] } }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "04 - API3:2023 Broken Object Property Level Authorization",
+      "item": [
+        {
+          "name": "Mass Assignment - Escalate to admin via PATCH EXPECT 403/ignored fields (secure)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/users/{{user1_id}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{user1_id}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"is_admin\": true,\n  \"role\": \"admin\"\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "// Secure behavior: should not allow role/is_admin changes by normal user.",
+                  "const becameAdmin = j && j.user && (j.user.is_admin === true || j.user.role === 'admin');",
+                  "if (!becameAdmin) {",
+                  "  pm.test('PASS (secure): property-level changes blocked/ignored', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): user could change is_admin/role (mass assignment)', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excessive Data Exposure - User object contains password EXPECT not present (secure)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/users/{{user1_id}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{user1_id}}"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = pm.response.json();",
+                  "const hasPassword = j && j.user && Object.prototype.hasOwnProperty.call(j.user, 'password');",
+                  "if (!hasPassword) {",
+                  "  pm.test('PASS (secure): password not exposed', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): password exposed in API response', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "05 - API4:2023 Unrestricted Resource Consumption",
+      "item": [
+        {
+          "name": "Huge limit parameter EXPECT 400/limited (secure)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/products?limit=999999&offset=0", "host": ["{{base_url}}"], "path": ["api", "products"], "query": [
+              { "key": "limit", "value": "999999" },
+              { "key": "offset", "value": "0" }
+            ] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Secure: should reject or cap. Vulnerable: accepts huge limit without complaint.",
+                  "if (pm.response.code === 400 || pm.response.code === 413) {",
+                  "  pm.test('PASS (secure): server rejected huge limit', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): server accepted huge limit (no cap)', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "06 - API5:2023 Broken Function Level Authorization",
+      "item": [
+        {
+          "name": "Admin endpoint as normal user EXPECT 403 (secure)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/admin/users", "host": ["{{base_url}}"], "path": ["api", "admin", "users"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 403) {",
+                  "  pm.test('PASS (secure): admin function blocked', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): admin function accessible to normal user', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete product as normal user EXPECT 403 (secure)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/products/1", "host": ["{{base_url}}"], "path": ["api", "products", "1"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 403) {",
+                  "  pm.test('PASS (secure): delete restricted', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): delete allowed without role check', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "07 - API6:2023 Unrestricted Access to Sensitive Business Flows",
+      "item": [
+        {
+          "name": "Create Order (stores order_id)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/orders", "host": ["{{base_url}}"], "path": ["api", "orders"] },
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": 2,\n  \"quantity\": 1,\n  \"price\": 1\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Order created', ()=> pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('order_id', String(j.order.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm order WITHOUT paying EXPECT 400/403 (secure)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/api/orders/{{order_id}}/confirm", "host": ["{{base_url}}"], "path": ["api", "orders", "{{order_id}}", "confirm"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Secure: should block confirm if not PAID. Vulnerable: allows CONFIRMED.",
+                  "if (pm.response.code !== 200) {",
+                  "  pm.test('PASS (secure): confirm blocked unless paid', () => true);",
+                  "} else {",
+                  "  const j = pm.response.json();",
+                  "  const confirmed = j && j.order && j.order.status === 'CONFIRMED';",
+                  "  if (!confirmed) {",
+                  "    pm.test('PASS (secure-ish): confirm did not finalize without payment', () => true);",
+                  "  } else {",
+                  "    pm.test('FAIL (vulnerable): confirm works without payment (business flow flaw)', () => false);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "08 - API7:2023 SSRF",
+      "item": [
+        {
+          "name": "SSRF - fetch internal URL EXPECT blocked (secure)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/utils/fetch-url", "host": ["{{base_url}}"], "path": ["api", "utils", "fetch-url"] },
+            "body": { "mode": "raw", "raw": "{\n  \"url\": \"http://127.0.0.1:5000/api/health\"\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Secure: should block internal IPs/localhost. Vulnerable: returns fetched content.",
+                  "if (pm.response.code !== 200) {",
+                  "  pm.test('PASS (secure): SSRF blocked', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): SSRF allowed internal fetch', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "09 - API8:2023 Security Misconfiguration",
+      "item": [
+        {
+          "name": "CORS check (Access-Control-Allow-Origin should NOT be *) EXPECT restricted (secure)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "Origin", "value": "http://evil.example" }],
+            "url": { "raw": "{{base_url}}/api/products", "host": ["{{base_url}}"], "path": ["api", "products"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const aco = pm.response.headers.get('Access-Control-Allow-Origin');",
+                  "if (aco && aco.trim() === '*') {",
+                  "  pm.test('FAIL (vulnerable): CORS allows * (misconfiguration)', () => false);",
+                  "} else {",
+                  "  pm.test('PASS (secure): CORS not wide-open', () => true);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "10 - API9:2023 Improper Inventory Management",
+      "item": [
+        {
+          "name": "Old debug endpoint exposed WITHOUT auth EXPECT 401/403 (secure)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/v1/debug/users", "host": ["{{base_url}}"], "path": ["api", "v1", "debug", "users"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 401 || pm.response.code === 403 || pm.response.code === 404) {",
+                  "  pm.test('PASS (secure): old endpoint protected/disabled', () => true);",
+                  "} else {",
+                  "  pm.test('FAIL (vulnerable): old debug endpoint exposed', () => false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "11 - API10:2023 Unsafe Consumption of APIs",
+      "item": [
+        {
+          "name": "NOTE: Set provider_url first (Postman Mock OR local quote server)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/health", "host": ["{{base_url}}"], "path": ["api", "health"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Read instructions in response/description', ()=>true);",
+                  "console.log('For API10 demo: set environment variable provider_url to a URL that returns JSON {\"quote\": 999}.');",
+                  "console.log('Recommended: Postman Mock Server returning {\"quote\": 999}');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Order (stores order_id) [for API10]",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/orders", "host": ["{{base_url}}"], "path": ["api", "orders"] },
+            "body": { "mode": "raw", "raw": "{\n  \"product_id\": 2,\n  \"quantity\": 1,\n  \"price\": 1\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Order created', ()=> pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('order_id', String(j.order.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unsafe Consumption - shipping quote trusts provider_url EXPECT allowlist/signature (secure)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/shipping/quote", "host": ["{{base_url}}"], "path": ["api", "shipping", "quote"] },
+            "body": { "mode": "raw", "raw": "{\n  \"provider_url\": \"{{provider_url}}\",\n  \"order_id\": {{order_id}}\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (!pm.environment.get('provider_url')) {",
+                  "  pm.test('SKIP: provider_url not set (set it to a mock returning {\"quote\":999})', ()=>false);",
+                  "} else if (pm.response.code !== 200) {",
+                  "  pm.test('PASS (secure): provider response not blindly trusted / blocked', ()=>true);",
+                  "} else {",
+                  "  const j = pm.response.json();",
+                  "  const quote = j && j.trusted_quote;",
+                  "  // Vulnerable behavior: any arbitrary quote accepted",
+                  "  if (typeof quote === 'number') {",
+                  "    pm.test('FAIL (vulnerable): server trusted third-party quote without verification', ()=>false);",
+                  "  } else {",
+                  "    pm.test('PASS (secure): quote not accepted blindly', ()=>true);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

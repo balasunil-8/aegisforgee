@@ -1,0 +1,8 @@
+{
+  "attack_prob": 0.6179830381308017,
+  "model_proba": 0.7160063292395552,
+  "heuristic": 0.2,
+  "embedding_max_sim": 0.9912694096565247,
+  "label": "attack",
+  "threshold": 0.5
+}

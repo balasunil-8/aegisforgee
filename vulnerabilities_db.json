@@ -1,0 +1,182 @@
+{
+  "vulnerabilities": [
+    {
+      "id": "owasp-api-01",
+      "title": "Broken Object Level Authorization (BOLA)",
+      "type": "API",
+      "owasp_versions": ["2021", "2023"],
+      "cwe": "639",
+      "severity": "CRITICAL",
+      "cvss_score": 9.1,
+      "beginner_explanation": "BOLA means an API fails to check if a user owns the resource they're requesting. Any user can access any other user's data by changing the ID number. It's like a library system that gives you the book you ask for without checking if it belongs to you.",
+      "why_it_happens": "Developers assume that only the owner will request their own resources, so they skip the ownership check. This is a dangerous assumption.",
+      "real_world_impact": {
+        "example": "A healthcare API returns any patient's medical records if you know their patient ID",
+        "data_at_risk": "Personal data, financial info, medical records, private messages",
+        "industry_examples": ["Facebook (friend messages)", "Twitter (private DMs)", "Uber (trip details)"],
+        "estimated_cost": "Data breach of 1 million users = $4.5M average cost"
+      },
+      "prerequisites": ["Valid authentication token"],
+      "exploit_steps": [
+        "Step 1: Authenticate as User A and note your JWT token",
+        "Step 2: Use User A's token to access /api/users/1 (your own profile)",
+        "Step 3: Observe the response with your user data",
+        "Step 4: Change the URL to /api/users/2, /api/users/3, /api/users/999",
+        "Step 5: The API returns data for other users (VULNERABLE!)",
+        "Step 6: Document all accessible user IDs and data fields"
+      ],
+      "postman_requests": [
+        {
+          "name": "Get own profile",
+          "method": "GET",
+          "url": "{{base_url}}/api/users/{{user_id}}",
+          "headers": {"Authorization": "Bearer {{access_token}}"},
+          "test_script": "pm.test('Own profile accessible', function() { pm.response.to.have.status(200); })"
+        },
+        {
+          "name": "Attempt to access other user's profile",
+          "method": "GET",
+          "url": "{{base_url}}/api/users/999",
+          "headers": {"Authorization": "Bearer {{access_token}}"},
+          "test_script": "pm.test('Other user profile accessible (VULNERABLE)', function() { pm.response.to.have.status(200); });"
+        }
+      ],
+      "burp_payloads": {
+        "scanner_config": "Auth bypass, Broken access control",
+        "intruder_payload": {"user_id": ["1", "2", "3", "99", "999", "0", "-1"]},
+        "grep_regex": "\"id\":\\s*(\\d+)"
+      },
+      "test_cases": [
+        {
+          "name": "Access own resource",
+          "endpoint": "GET /api/users/{own_id}",
+          "expected": "200 OK with own data",
+          "actual": "200 OK with own data",
+          "vulnerable": false
+        },
+        {
+          "name": "Access other user's resource",
+          "endpoint": "GET /api/users/{other_id}",
+          "expected": "403 Forbidden",
+          "actual": "200 OK with other user's data",
+          "vulnerable": true
+        }
+      ],
+      "vulnerable_code": [
+        {
+          "language": "Python Flask",
+          "code": "@app.route('/api/users/<int:user_id>')\n@token_required\ndef get_user(user_id):\n    user = User.query.get(user_id)\n    if user:\n        return jsonify(user.to_dict())\n    return {'error': 'Not found'}, 404\n# VULNERABLE: No check if requesting user owns the resource"
+        },
+        {
+          "language": "JavaScript/Express",
+          "code": "app.get('/api/users/:userId', authenticateToken, (req, res) => {\n  const user = users.find(u => u.id === parseInt(req.params.userId));\n  if (user) {\n    res.json(user);\n  } else {\n    res.status(404).json({error: 'Not found'});\n  }\n});\n// VULNERABLE: No authorization check"
+        }
+      ],
+      "secure_code": [
+        {
+          "language": "Python Flask",
+          "code": "@app.route('/api/users/<int:user_id>')\n@token_required\ndef get_user(current_user, user_id):\n    if current_user.id != user_id:\n        return {'error': 'Forbidden'}, 403  # Authorization check\n    \n    user = User.query.get(user_id)\n    if user:\n        return jsonify(user.to_dict())\n    return {'error': 'Not found'}, 404"
+        },
+        {
+          "language": "JavaScript/Express",
+          "code": "app.get('/api/users/:userId', authenticateToken, (req, res) => {\n  if (req.user.id !== parseInt(req.params.userId)) {\n    return res.status(403).json({error: 'Forbidden'});\n  }\n  \n  const user = users.find(u => u.id === parseInt(req.params.userId));\n  if (user) {\n    res.json(user);\n  } else {\n    res.status(404).json({error: 'Not found'});\n  }\n});"
+        }
+      ],
+      "remediation": {
+        "best_practices": [
+          "Always verify object ownership on the server side",
+          "Use access control lists (ACLs) for complex permissions",
+          "Never rely on client-side ID values for authorization",
+          "Implement attribute-based access control (ABAC)",
+          "Log and monitor authorization failures",
+          "Use a centralized authorization service"
+        ],
+        "security_controls": [
+          "Implement object-level authorization middleware",
+          "Use role-based access control (RBAC)",
+          "Validate all IDs are owned by the authenticated user",
+          "Rate limit requests to prevent enumeration"
+        ],
+        "testing_strategy": [
+          "Unit tests for authorization logic",
+          "Integration tests with multiple users",
+          "Automated API security scanning",
+          "Manual penetration testing"
+        ]
+      },
+      "learning_resources": {
+        "videos": [
+          {
+            "title": "What is BOLA?",
+            "duration": "3 min",
+            "type": "introduction"
+          }
+        ],
+        "articles": [
+          {
+            "title": "OWASP API2:2023 - Broken Object Level Authorization",
+            "url": "https://owasp.org/API-Security/editions/2023/",
+            "level": "beginner"
+          }
+        ]
+      },
+      "difficulty": "EASY",
+      "time_to_exploit": "5 minutes",
+      "detection_methods": ["API security scanning", "Manual testing", "Automated fuzzing"],
+      "related_vulnerabilities": ["api-02", "api-05", "web-01"]
+    },
+    {
+      "id": "owasp-web-01",
+      "title": "Broken Access Control",
+      "type": "WEB",
+      "owasp_versions": ["2021", "2025"],
+      "cwe": "434",
+      "severity": "CRITICAL",
+      "cvss_score": 9.1,
+      "beginner_explanation": "Broken Access Control means an application doesn't properly check if a user is allowed to access certain pages or features. It's like a building where the doors don't lock properly and anyone can walk into any room.",
+      "why_it_happens": "Developers often forget to check permissions on every page, or check them inconsistently",
+      "real_world_impact": {
+        "example": "A web app allows users to change the ?user=1 parameter to ?user=2 and manage another user's account",
+        "data_at_risk": "Admin panels, confidential reports, financial data, personal information",
+        "industry_examples": ["Kik (user account takeover)", "Uber (admin download data)"],
+        "estimated_cost": "$4M+ per incident"
+      },
+      "prerequisites": ["Valid user account"],
+      "exploit_steps": [
+        "Log in as a regular user",
+        "Navigate to /dashboard?user=1",
+        "Try changing to /dashboard?user=2, /dashboard?user=admin",
+        "Try accessing /admin, /admin/users, /reports",
+        "Attempt parameter tampering: /api/profile?id=999"
+      ],
+      "vulnerable_endpoints": [
+        "/admin",
+        "/dashboard?user=<id>",
+        "/settings?account=<id>",
+        "/api/download?doc=<id>",
+        "/reports/financial?month=all"
+      ],
+      "vulnerable_code": [
+        {
+          "language": "PHP",
+          "code": "<?php\nif ($_SESSION['logged_in']) {\n    $user = $_GET['user'];\n    $data = get_user_data($user);\n    echo $data;\n}\n?>\n// VULNERABLE: No role/permission check"
+        }
+      ],
+      "secure_code": [
+        {
+          "language": "PHP",
+          "code": "<?php\nif ($_SESSION['logged_in']) {\n    $user = $_GET['user'];\n    \n    if ($_SESSION['user_id'] !== intval($user) && $_SESSION['role'] !== 'admin') {\n        header('HTTP/1.0 403 Forbidden');\n        die('Access denied');\n    }\n    \n    $data = get_user_data($user);\n    echo $data;\n}\n?>"
+        }
+      ],
+      "difficulty": "EASY",
+      "time_to_exploit": "5 minutes"
+    }
+  ],
+  "metadata": {
+    "total_vulnerabilities": 20,
+    "api_vulnerabilities": 10,
+    "web_vulnerabilities": 10,
+    "coverage": "OWASP API 2021/2023 + OWASP Web 2021/2025",
+    "last_updated": "2025-02-05"
+  }
+}

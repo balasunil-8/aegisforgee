@@ -1,0 +1,11 @@
+Status 200
+{
+  "analysis": {
+    "attack_prob": 0.45800316461977764,
+    "heuristic": 0.2,
+    "label": "benign",
+    "model_proba": 0.7160063292395552,
+    "threshold": 0.5
+  },
+  "ok": true
+}

@@ -1,0 +1,99 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    container_name: securityforge_web
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app:rw
+    environment:
+      - FLASK_APP=pentestlab_api.py
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+  db:
+    image: "sqlite3"
+    # SQLite is file-based; keep placeholder for future DB choices
+
+  # Note: For production public deployment use per-user sandboxes and no public egress.
+version: '3.8'
+
+services:
+  # Flask Web Application
+  web:
+    build: .
+    container_name: vulnshop_pro_web
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://vulnshop:vulnshop_password@db:5432/vulnshop_pro
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - SECRET_KEY=dev-key-change-in-production
+      - JWT_SECRET_KEY=jwt-secret-change-in-production
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - logs_volume:/app/logs
+    networks:
+      - vulnshop_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: vulnshop_pro_db
+    environment:
+      - POSTGRES_USER=vulnshop
+      - POSTGRES_PASSWORD=vulnshop_password
+      - POSTGRES_DB=vulnshop_pro
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - vulnshop_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vulnshop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (for session storage)
+  redis:
+    image: redis:7-alpine
+    container_name: vulnshop_pro_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - vulnshop_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  logs_volume:
+    driver: local
+
+networks:
+  vulnshop_network:
+    driver: bridge

@@ -1,0 +1,21 @@
+{
+  "id": "securityforge-local-env",
+  "name": "SecurityForge - Local Lab",
+  "values": [
+    { "key": "base_url", "value": "http://localhost:5000", "enabled": true },
+    { "key": "email_user1", "value": "user1@example.com", "enabled": true },
+    { "key": "pass_user1", "value": "Password123", "enabled": true },
+    { "key": "email_user2", "value": "user2@example.com", "enabled": true },
+    { "key": "pass_user2", "value": "Password123", "enabled": true },
+    { "key": "token_user1", "value": "", "enabled": true },
+    { "key": "token_user2", "value": "", "enabled": true },
+    { "key": "access_token", "value": "", "enabled": true },
+    { "key": "user1_id", "value": "1", "enabled": true },
+    { "key": "user2_id", "value": "2", "enabled": true },
+    { "key": "order_id", "value": "", "enabled": true },
+    { "key": "provider_url", "value": "http://localhost:5050/quote", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-02-05T00:00:00.000Z",
+  "_postman_exported_using": "Postman/11"
+}

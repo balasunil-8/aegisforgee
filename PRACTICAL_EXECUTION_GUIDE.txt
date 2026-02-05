@@ -1,0 +1,434 @@
+================================================================================
+VULNSHOP LAB - PRACTICAL EXECUTION & DEMONSTRATION GUIDE
+================================================================================
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 1: PRE-EXECUTION SETUP (5 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+Goal: Show students the environment and files they'll be working with
+
+STEP 1: Show Project Structure
+────────────────────────────────────────────────────────────────────────────────
+Command:
+  dir C:\vuln_api_testing /B
+
+Output will show:
+  Dashboard_Interactive.html
+  VulnShop_Collection.json
+  VulnShop_Environment.json
+  vulnshop.py
+  secure_vulnshop.py
+  mock_quote.py
+  [other support files]
+
+Explain:
+  "These files make up our complete API security lab. Today we'll:"
+  1. Run the VULNERABLE API (full of bugs)
+  2. Run automated tests to FIND the vulnerabilities
+  3. Review the SECURE version to see how to FIX them
+  4. Compare results to show security improvements
+
+
+STEP 2: Open the Postman Collection (Visual Overview)
+────────────────────────────────────────────────────────────────────────────────
+Action: Open Postman, import VulnShop_Collection.json
+
+Show them:
+  - Left sidebar: 11 folders (one per OWASP API vulnerability)
+  - Each folder contains 1-3 test requests
+  - Green checkmarks = PASS (secure behavior)
+  - Red X marks = FAIL (vulnerabilities detected)
+
+Say:
+  "Each folder tests one OWASP vulnerability. We have 23 total tests.
+   When we run against the VULNERABLE API, about 10 will FAIL.
+   When we run against the SECURE version, most should PASS."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 2: EXECUTE VULNERABLE API TESTS (15 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+Goal: Show failures in action and explain each vulnerability
+
+STEP 1: Start Vulnerable API
+────────────────────────────────────────────────────────────────────────────────
+Command:
+  cd C:\vuln_api_testing
+  python vulnshop.py
+
+Expected output:
+  * Running on http://127.0.0.1:5000
+  * Debug mode: on
+
+Explain:
+  "The API is now running on localhost:5000. It contains intentional bugs
+   that demonstrate OWASP API Top 10 vulnerabilities. Let's test it."
+
+
+STEP 2: Run the Complete Postman Test Suite
+────────────────────────────────────────────────────────────────────────────────
+Option A: Postman GUI (Visual - Best for classroom)
+  - Open Postman
+  - Import collection + environment
+  - Runner → Select collection → Run
+  - Watch tests execute in real-time
+  - Show failures as they happen
+
+Option B: Command Line Newman (Scripted)
+  Command:
+    newman run "VulnShop_Collection.json" -e "VulnShop_Environment.json" -r cli
+
+  Output will show:
+    ✓ PASS tests (green)
+    ✗ FAIL tests (red)
+
+
+STEP 3: Explain Each Vulnerability AS IT FAILS
+────────────────────────────────────────────────────────────────────────────────
+
+As tests run, point out each FAIL and explain:
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ VULNERABILITY 1: API1 - BOLA (Broken Object Level Authorization)            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│ Test: "BOLA - Read other user's order (User1 reads Order 2)"               │
+│ Request: GET /api/orders/2  [with User1's JWT token]                        │
+│                                                                              │
+│ Expected (Secure):  403 Forbidden → User1 should NOT access order 2        │
+│ Actual (Vulnerable): 200 OK + order data → User1 CAN access it!            │
+│                                                                              │
+│ Why it's a problem:                                                         │
+│   - Any user can view ANY other user's orders                               │
+│   - Attacker could see sensitive purchase history, payment info             │
+│   - Real-world impact: Data theft, privacy violation                        │
+│                                                                              │
+│ The Fix (Show in secure_vulnshop.py):                                       │
+│   @app.get("/api/orders/<int:order_id>")                                    │
+│   @jwt_required()                                                           │
+│   def get_order(order_id):                                                  │
+│       u = current_user()  # ← Get logged-in user                            │
+│       o = Order.query.get(order_id)                                         │
+│       if o.user_id != u.id:  # ← OWNERSHIP CHECK                           │
+│           return {"error": "Forbidden"}, 403  # ← Block access             │
+│       return {"order": o.to_dict()}, 200                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ VULNERABILITY 2: API3 - Mass Assignment & Password Exposure                 │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│ Test 1: "Mass Assignment - Escalate to admin via PATCH"                     │
+│ Request: PATCH /api/users/1                                                 │
+│ Body: { "is_admin": true, "role": "admin" }                                │
+│                                                                              │
+│ Expected (Secure): Changes ignored, user stays normal                       │
+│ Actual (Vulnerable): User becomes admin! ← PRIVILEGE ESCALATION             │
+│                                                                              │
+│ Test 2: "Password Exposure"                                                 │
+│ Request: GET /api/users/1                                                   │
+│ Response includes: { "password": "Password123" }  ← Should NOT be there!    │
+│                                                                              │
+│ Why it's a problem:                                                         │
+│   - Normal user can elevate to admin (complete account takeover)            │
+│   - Passwords leaked in API responses (should be hashed only)               │
+│   - Attacker could steal all user credentials                               │
+│                                                                              │
+│ The Fixes:                                                                  │
+│   1. Allowlist fields (only allow changing name/email):                     │
+│      allowed = {"name", "email"}                                            │
+│      for k in list(payload.keys()):                                         │
+│          if k not in allowed:                                               │
+│              del payload[k]  # ← Silent drop of dangerous fields            │
+│                                                                              │
+│   2. Remove password from responses:                                        │
+│      def to_public(self):                                                   │
+│          return {"id": self.id, "email": self.email}  # NO PASSWORD!        │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+[Continue for each FAIL vulnerability...]
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ VULNERABILITY 3: API4 - No Rate Limits                                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Test: "Huge limit parameter EXPECT 400/limited (secure)"                    │
+│ Request: GET /api/products?limit=999999&offset=0                            │
+│ Expected: 400 Bad Request (limit too high)                                  │
+│ Actual: 200 OK (accepted unlimited request)                                 │
+│ Problem: DOS attack → Force API to process millions of records              │
+│ Fix: Validate and cap: if limit > 100: return 400                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+[... continue for remaining vulnerabilities ...]
+
+
+STEP 4: Show the Live Dashboard
+────────────────────────────────────────────────────────────────────────────────
+While vulnerable API is still running, open:
+  Dashboard_Interactive.html (in browser)
+
+Show:
+  - Live user count, products, orders from running API
+  - "Connected Users" section pulls from /api/users
+  - "Available Products" section pulls from /api/products
+  
+Explain:
+  "This dashboard connects to the live VULNERABLE API.
+   It shows real-time data and also explains each OWASP vulnerability.
+   Each section has attack demonstrations."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 3: CODE REVIEW - Show the Contrast (10 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+Goal: Show students exactly WHERE the bugs are and HOW to fix them
+
+STEP 1: Side-by-Side Code Comparison
+────────────────────────────────────────────────────────────────────────────────
+Open both files in VS Code:
+  vulnshop.py (LEFT) vs secure_vulnshop.py (RIGHT)
+
+Navigate to: def get_order(order_id)
+
+VULNERABLE VERSION (vulnshop.py):
+────────────────────────────────────────────────────────────────────────────────
+@app.get("/api/orders/<int:order_id>")
+@jwt_required()
+def get_order(order_id):
+    u = current_user()
+    o = Order.query.get(order_id)
+    if not o:
+        return jsonify({"ok": False, "error": "Order not found"}), 404
+    
+    # BUG: NO OWNERSHIP CHECK! Any user can read any order!
+    return jsonify({"ok": True, "order": o.to_dict()})
+
+Highlight the BUG:
+  "The function doesn't check if the logged-in user OWNS the order.
+   It just returns any order to anyone who requests it."
+
+
+SECURE VERSION (secure_vulnshop.py):
+────────────────────────────────────────────────────────────────────────────────
+@app.get("/api/orders/<int:order_id>")
+@jwt_required()
+def get_order(order_id):
+    u = current_user()
+    o = Order.query.get(order_id)
+    if not o:
+        return jsonify({"ok": False, "error": "Order not found"}), 404
+    
+    # FIX: Check ownership before returning
+    denial = require_owner_or_admin(u, o.user_id)
+    if denial:
+        return denial
+    
+    return jsonify({"ok": True, "order": o.to_dict()})
+
+Highlight the FIX:
+  "Added 3 lines that check: is this user the owner OR an admin?
+   If not, return 403 Forbidden. Simple but critical!"
+
+
+STEP 2: Show the Helper Function
+────────────────────────────────────────────────────────────────────────────────
+In secure_vulnshop.py, show:
+
+def require_owner_or_admin(user, owner_id):
+    if not user:
+        return jsonify({"ok": False, "error": "Unauthorized"}), 401
+    if user.role == "admin":
+        return None  # Admins can see everything
+    if user.id != owner_id:
+        return jsonify({"ok": False, "error": "Forbidden"}), 403  # ← Block
+    return None  # User is owner, allow access
+
+Say:
+  "This function is used in 15+ endpoints to enforce ownership.
+   It's a SECURITY PATTERN that should be used everywhere."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 4: SWITCH & RE-TEST (5 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+Goal: Demonstrate that fixes actually work
+
+STEP 1: Stop Vulnerable API
+────────────────────────────────────────────────────────────────────────────────
+In terminal where vulnshop.py is running:
+  Press CTRL+C
+
+Output:
+  KeyboardInterrupt
+  Shutting down... ✓
+
+
+STEP 2: Start Secure API
+────────────────────────────────────────────────────────────────────────────────
+In same or new terminal:
+  python secure_vulnshop.py
+
+Output:
+  * Running on http://127.0.0.1:5000
+  (Note: Same port, different code)
+
+
+STEP 3: Re-Run Postman Tests
+────────────────────────────────────────────────────────────────────────────────
+In Postman (or Newman):
+  Run the collection again (same tests, same environment)
+
+Compare Results:
+  VULNERABLE API:  10 FAIL ✗ (bugs demonstrated)
+  SECURE API:      3 FAIL ✗ (some still vulnerable - intentional for teaching)
+  
+  Or if you want ALL PASS:
+  You can harden secure_vulnshop.py further (optional exercise)
+
+Show:
+  "Notice the same tests against the secure version return different results.
+   The API now REJECTS unauthorized access, validates inputs, etc.
+   This is what security looks like in practice."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 5: INTERACTIVE Q&A & ATTACK DEMOS (10 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+Goal: Let students explore and learn
+
+OPTION 1: Manual Attack Demonstration
+────────────────────────────────────────────────────────────────────────────────
+Switch back to VULNERABLE API and show custom attacks:
+
+Command 1 - BOLA Attack:
+  # Login as User1
+  curl -X POST http://localhost:5000/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"user1@example.com\",\"password\":\"Password123\"}"
+  
+  # Copy the token, then try to read User2's profile
+  curl -X GET http://localhost:5000/api/users/2 \
+    -H "Authorization: Bearer <USER1_TOKEN>"
+  
+  Result: RETURNS User2 data! (should be 403)
+
+Command 2 - Mass Assignment Attack:
+  # Try to escalate to admin
+  curl -X PATCH http://localhost:5000/api/users/1 \
+    -H "Authorization: Bearer <USER1_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d "{\"is_admin\": true}"
+  
+  Result: User is_admin becomes true! (should be ignored)
+
+Command 3 - SSRF Attack:
+  # Try to fetch internal endpoint
+  curl -X POST http://localhost:5000/api/utils/fetch-url \
+    -H "Authorization: Bearer <USER1_TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d "{\"url\": \"http://127.0.0.1:5000/api/health\"}"
+  
+  Result: Returns the health endpoint data! (should be blocked)
+
+
+OPTION 2: Let Students Modify & Test
+────────────────────────────────────────────────────────────────────────────────
+Challenge them:
+  "Now, can you FIX one vulnerability?"
+  
+  Steps:
+  1. Copy vulnshop.py to vulnshop_student.py
+  2. Find the BOLA bug (missing ownership check)
+  3. Add the fix: if user.id != resource.owner_id: return 403
+  4. Restart API with your fixed version
+  5. Re-run the tests to verify it passes
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PART 6: WRAP-UP & TAKEAWAYS (5 minutes)
+═══════════════════════════════════════════════════════════════════════════════
+
+Key Points to Emphasize:
+
+✓ "We demonstrated 10 OWASP API vulnerabilities in action"
+✓ "Postman tests validated the vulnerabilities"
+✓ "We reviewed the code and found the exact bugs"
+✓ "We applied fixes and verified they work"
+✓ "Security is not magicаль - it's patterns and practices"
+
+Security Patterns They Learned:
+  1. Ownership checks (BOLA prevention)
+  2. Input validation (rate limiting)
+  3. Allowlists (mass assignment prevention)
+  4. Data sanitization (password removal)
+  5. Safe API consumption (SSRF/malicious input blocking)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+OPTIONAL: Extended Activities
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Bug Hunt Exercise:
+   - Students review vulnerable code
+   - Identify as many bugs as possible
+   - Document findings
+
+2. Defense Implementation:
+   - Students implement fixes in a copy of vulnshop.py
+   - Use the secure_vulnshop.py as reference
+   - Re-test and verify improvements
+
+3. Compliance Mapping:
+   - Map each vulnerability to PCI-DSS, HIPAA, GDPR requirements
+   - Discuss real-world penalties
+
+4. Penetration Testing:
+   - Use OWASP ZAP to scan the vulnerable API
+   - Compare automated findings with manual tests
+   - Show how manual + automated testing finds more issues
+
+5. CI/CD Pipeline:
+   - Set up GitHub Actions to run Newman collection on each commit
+   - Fail CI if security tests don't pass
+   - Demonstrate continuous security validation
+
+
+═══════════════════════════════════════════════════════════════════════════════
+PRESENTATION TIPS
+═══════════════════════════════════════════════════════════════════════════════
+
+DO:
+  ✓ Run tests live (not pre-recorded) - shows authenticity
+  ✓ Pause on each FAIL and explain the impact
+  ✓ Show code side-by-side (vulnerable vs secure)
+  ✓ Let students ask questions
+  ✓ Let them try custom attacks in Newman/curl
+  
+DON'T:
+  ✗ Assume they understand the requests
+  ✗ Go too fast - pause and explain each step
+  ✗ Use only command line - Postman GUI is more visual
+  ✗ Forget to mention real-world impact of each bug
+  ✗ Make it feel theoretical - keep it practical and hands-on
+
+
+═══════════════════════════════════════════════════════════════════════════════
+TOTAL TIME: ~50 Minutes
+═══════════════════════════════════════════════════════════════════════════════
+
+5 min  - Setup & file overview
+15 min - Execute & explain vulnerable tests
+10 min - Code review (vulnerable vs secure)
+5 min  - Switch & re-test with secure version
+10 min - Q&A & attack demos
+5 min  - Wrap-up & takeaways
+
+This gives you a complete, hands-on demonstration that students can follow,
+understand, and replicate on their own machines afterward!

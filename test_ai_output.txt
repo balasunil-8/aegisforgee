@@ -1,0 +1,15 @@
+ERROR:pentestlab_api:Logging error: (sqlite3.OperationalError) no such table: api_log
+[SQL: INSERT INTO api_log (endpoint, method, status_code, timestamp, is_attack, payload) VALUES (?, ?, ?, ?, ?, ?)]
+[parameters: ('/api/ai/detect', 'POST', 200, '2026-02-05 16:56:39.999665', 0, "admin' OR '1'='1 --")]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Status 200
+{
+  "analysis": {
+    "attack_prob": 0.45800316461977764,
+    "heuristic": 0.2,
+    "label": "benign",
+    "model_proba": 0.7160063292395552,
+    "threshold": 0.5
+  },
+  "ok": true
+}

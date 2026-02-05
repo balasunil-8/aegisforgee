@@ -1,0 +1,234 @@
+{
+  "timestamp": "2026-02-05T14:01:53.794626",
+  "vulnerabilities": {
+    "API1": {
+      "name": "BOLA (Broken Object Level Authorization)",
+      "description": "Attackers can access resources of other users by manipulating object IDs",
+      "endpoints": [
+        "/api/users/<id>",
+        "/api/orders/<id>"
+      ],
+      "vulnerable": true,
+      "fix": "Add ownership checks before returning objects"
+    },
+    "API2": {
+      "name": "Broken Authentication",
+      "description": "Weak passwords, no rate limiting, insecure token storage",
+      "endpoints": [
+        "/api/auth/login"
+      ],
+      "vulnerable": true,
+      "fix": "Hash passwords, implement rate limiting, use secure secrets"
+    },
+    "API3": {
+      "name": "Broken Object Property-Level Authorization",
+      "description": "Mass assignment: blindly updates fields; Excessive data exposure: returns sensitive data",
+      "endpoints": [
+        "PATCH /api/users/<id>",
+        "GET /api/users/<id>"
+      ],
+      "vulnerable": true,
+      "fix": "Allowlist safe fields, exclude sensitive fields from responses"
+    },
+    "API4": {
+      "name": "Unrestricted Resource Consumption",
+      "description": "No pagination limits; attacker can request millions of records",
+      "endpoints": [
+        "GET /api/products?limit=999999"
+      ],
+      "vulnerable": true,
+      "fix": "Enforce pagination caps (max 100), rate limiting"
+    },
+    "API5": {
+      "name": "Broken Function-Level Authorization",
+      "description": "No role checks; normal users can access admin functions",
+      "endpoints": [
+        "DELETE /api/products/<id>",
+        "GET /api/admin/users"
+      ],
+      "vulnerable": true,
+      "fix": "Add role-based access control (RBAC) checks"
+    },
+    "API6": {
+      "name": "Unrestricted Access to Sensitive Business Flows",
+      "description": "Business logic not enforced; can confirm orders without paying",
+      "endpoints": [
+        "POST /api/orders/<id>/confirm"
+      ],
+      "vulnerable": true,
+      "fix": "Enforce business flow state machines"
+    },
+    "API7": {
+      "name": "SSRF (Server-Side Request Forgery)",
+      "description": "API fetches internal URLs; attacker can probe internal network",
+      "endpoints": [
+        "POST /api/utils/fetch-url"
+      ],
+      "vulnerable": true,
+      "fix": "Block private IPs, loopback, metadata services"
+    },
+    "API8": {
+      "name": "Security Misconfiguration",
+      "description": "Debug mode on, CORS wide open, weak defaults",
+      "endpoints": [
+        "Global configuration"
+      ],
+      "vulnerable": true,
+      "fix": "Disable debug, restrict CORS, use strong secrets"
+    },
+    "API9": {
+      "name": "Improper Inventory Management",
+      "description": "Old debug endpoints exposed without authentication",
+      "endpoints": [
+        "GET /api/v1/debug/users"
+      ],
+      "vulnerable": true,
+      "fix": "Disable old endpoints, remove debug functionality"
+    },
+    "API10": {
+      "name": "Unsafe Consumption of APIs",
+      "description": "Trust third-party API responses without validation or allowlist",
+      "endpoints": [
+        "POST /api/shipping/quote"
+      ],
+      "vulnerable": true,
+      "fix": "Allowlist provider URLs, validate responses, use signatures"
+    }
+  },
+  "test_cases": {
+    "API1": [
+      {
+        "name": "BOLA - Read other user's order",
+        "endpoint": "GET /api/orders/2",
+        "attack": "Login as User1, read order_id=2 (belongs to User2)",
+        "vulnerable_result": "200 OK + order data",
+        "secure_result": "403 Forbidden",
+        "severity": "CRITICAL"
+      },
+      {
+        "name": "BOLA - Read other user's profile",
+        "endpoint": "GET /api/users/<user2_id>",
+        "attack": "Login as User1, read User2's profile",
+        "vulnerable_result": "200 OK + user data",
+        "secure_result": "403 Forbidden",
+        "severity": "CRITICAL"
+      }
+    ],
+    "API2": [
+      {
+        "name": "Missing token rejection",
+        "endpoint": "GET /api/orders/1 (no auth)",
+        "attack": "Send request without JWT token",
+        "vulnerable_result": "200 OK (request succeeds)",
+        "secure_result": "401 Unauthorized",
+        "severity": "CRITICAL"
+      },
+      {
+        "name": "Tampered token acceptance",
+        "endpoint": "GET /api/orders/1",
+        "attack": "Use garbage JWT: 'this.is.not.a.jwt'",
+        "vulnerable_result": "200 OK (invalid token accepted)",
+        "secure_result": "401 Unauthorized",
+        "severity": "CRITICAL"
+      }
+    ],
+    "API3": [
+      {
+        "name": "Mass assignment - Become admin",
+        "endpoint": "PATCH /api/users/1",
+        "attack": "Send {\"is_admin\": true, \"role\": \"admin\"}",
+        "vulnerable_result": "User becomes admin",
+        "secure_result": "Fields ignored, user stays normal",
+        "severity": "CRITICAL"
+      },
+      {
+        "name": "Password exposed in response",
+        "endpoint": "GET /api/users/1",
+        "attack": "Request user profile",
+        "vulnerable_result": "Response includes plaintext password",
+        "secure_result": "Password field not in response",
+        "severity": "HIGH"
+      }
+    ],
+    "API4": [
+      {
+        "name": "Huge pagination limit",
+        "endpoint": "GET /api/products?limit=999999",
+        "attack": "Request 999K products at once",
+        "vulnerable_result": "200 OK (server tries to load all)",
+        "secure_result": "400 Bad Request (limit capped at 100)",
+        "severity": "HIGH"
+      }
+    ],
+    "API5": [
+      {
+        "name": "Admin endpoint accessible to normal user",
+        "endpoint": "GET /api/admin/users",
+        "attack": "Login as normal User1, access admin list",
+        "vulnerable_result": "200 OK + all users data",
+        "secure_result": "403 Forbidden",
+        "severity": "CRITICAL"
+      },
+      {
+        "name": "Delete product without role check",
+        "endpoint": "DELETE /api/products/1",
+        "attack": "Normal user deletes product",
+        "vulnerable_result": "200 OK (product deleted)",
+        "secure_result": "403 Forbidden",
+        "severity": "CRITICAL"
+      }
+    ],
+    "API6": [
+      {
+        "name": "Confirm order without paying",
+        "endpoint": "POST /api/orders/1/confirm",
+        "attack": "Create order, confirm immediately (skip payment)",
+        "vulnerable_result": "Order status: CONFIRMED (no payment taken)",
+        "secure_result": "409 Conflict (must be PAID first)",
+        "severity": "CRITICAL"
+      }
+    ],
+    "API7": [
+      {
+        "name": "SSRF - Fetch internal localhost",
+        "endpoint": "POST /api/utils/fetch-url",
+        "attack": "Send {\"url\": \"http://127.0.0.1:5000/api/health\"}",
+        "vulnerable_result": "200 OK + internal response body",
+        "secure_result": "403 Forbidden (localhost blocked)",
+        "severity": "CRITICAL"
+      }
+    ],
+    "API8": [
+      {
+        "name": "CORS wide open",
+        "endpoint": "GET /api/products (with Origin header)",
+        "attack": "Check Access-Control-Allow-Origin header",
+        "vulnerable_result": "Access-Control-Allow-Origin: *",
+        "secure_result": "Access-Control-Allow-Origin: restricted",
+        "severity": "HIGH"
+      }
+    ],
+    "API9": [
+      {
+        "name": "Old debug endpoint exposed",
+        "endpoint": "GET /api/v1/debug/users (no auth)",
+        "attack": "Access legacy debug endpoint",
+        "vulnerable_result": "200 OK + all users data",
+        "secure_result": "404 Not Found or 401 Unauthorized",
+        "severity": "CRITICAL"
+      }
+    ],
+    "API10": [
+      {
+        "name": "Trust third-party API response",
+        "endpoint": "POST /api/shipping/quote",
+        "attack": "Send arbitrary provider_url, trust quote response",
+        "vulnerable_result": "Trusts any provider response",
+        "secure_result": "Validates provider allowlist + response schema",
+        "severity": "HIGH"
+      }
+    ]
+  },
+  "total_vulnerabilities": 10,
+  "total_tests": 14
+}

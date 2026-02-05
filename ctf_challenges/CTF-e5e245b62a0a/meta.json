@@ -1,0 +1,9 @@
+{
+  "id": "CTF-e5e245b62a0a",
+  "title": "SmallE (auto)",
+  "kind": "crypto",
+  "created_at": "2026-02-05T17:11:09.649550",
+  "files": [
+    "crypto_challenge.py"
+  ]
+}

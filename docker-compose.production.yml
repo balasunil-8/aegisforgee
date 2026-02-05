@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # SecurityForge API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: securityforge-api
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: production
+      FLASK_APP: securityforge_api.py
+      DATABASE_URL: postgresql://securityforge:securityforge_password@postgres:5432/securityforge_db
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - ./logs:/app/logs
+      - ./instance:/app/instance
+    networks:
+      - securityforge-net
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: securityforge-db
+    environment:
+      POSTGRES_USER: securityforge
+      POSTGRES_PASSWORD: securityforge_password
+      POSTGRES_DB: securityforge_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U securityforge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - securityforge-net
+
+  # Optional: Adminer for Database Management
+  adminer:
+    image: adminer
+    container_name: securityforge-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - securityforge-net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  securityforge-net:
+    driver: bridge
+
+# Usage:
+# Development: docker-compose -f docker-compose.production.yml up
+# Background: docker-compose -f docker-compose.production.yml up -d
+# Logs: docker-compose -f docker-compose.production.yml logs -f api
+# Stop: docker-compose -f docker-compose.production.yml down
