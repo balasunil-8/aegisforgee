@@ -832,6 +832,150 @@ def ctf_get(cid):
     except Exception as e:
         return {'ok': False, 'error': str(e)}, 500
 
+
+@app.route('/api/ctf/challenges/<challenge_name>', methods=['GET'])
+def ctf_challenge_get(challenge_name):
+    """
+    Get a specific AegisForge CTF challenge
+    Available challenges: area64, smalle, hidden_layers, paper_script, synthetic_stacks
+    """
+    challenge_map = {
+        'area64': 'ctf_challenges.area64.challenge',
+        'smalle': 'ctf_challenges.smalle.challenge',
+        'hidden_layers': 'ctf_challenges.hidden_layers.challenge',
+        'paper_script': 'ctf_challenges.paper_script.challenge',
+        'synthetic_stacks': 'ctf_challenges.synthetic_stacks.challenge'
+    }
+    
+    if challenge_name not in challenge_map:
+        return {
+            'ok': False,
+            'error': 'Challenge not found',
+            'available_challenges': list(challenge_map.keys())
+        }, 404
+    
+    try:
+        # Dynamically import the challenge module
+        import importlib
+        module = importlib.import_module(challenge_map[challenge_name])
+        
+        # Generate challenge for the user
+        user_id = request.args.get('user_id', 'anonymous')
+        challenge_data = module.generate_challenge(user_id)
+        
+        # Don't expose the flag in the response
+        response_data = {
+            'ok': True,
+            'challenge': {
+                'id': challenge_data['challenge_id'],
+                'name': challenge_data['name'],
+                'category': challenge_data['category'],
+                'difficulty': challenge_data['difficulty'],
+                'points': challenge_data['points'],
+                'description': challenge_data['description'],
+                'artifacts': challenge_data['artifacts'],
+                'hints': challenge_data.get('hints', [])
+            }
+        }
+        
+        # Store the flag in session for verification later
+        from flask import session
+        if 'ctf_flags' not in session:
+            session['ctf_flags'] = {}
+        session['ctf_flags'][challenge_name] = challenge_data['flag']
+        session.modified = True
+        
+        return response_data, 200
+        
+    except Exception as e:
+        logger.error(f"Error loading challenge {challenge_name}: {e}")
+        return {'ok': False, 'error': str(e)}, 500
+
+
+@app.route('/api/ctf/challenges/<challenge_name>/verify', methods=['POST'])
+def ctf_challenge_verify(challenge_name):
+    """
+    Verify a submitted flag for a CTF challenge
+    Request: {"flag": "HQX{...}"}
+    """
+    data = request.get_json() or {}
+    submitted_flag = data.get('flag', '').strip()
+    
+    if not submitted_flag:
+        return {'ok': False, 'error': 'No flag provided'}, 400
+    
+    # Get the correct flag from session
+    from flask import session
+    correct_flag = session.get('ctf_flags', {}).get(challenge_name)
+    
+    if not correct_flag:
+        return {
+            'ok': False,
+            'error': 'Challenge not started. Get the challenge first.',
+            'hint': f'GET /api/ctf/challenges/{challenge_name}'
+        }, 400
+    
+    # Verify the flag
+    is_correct = submitted_flag == correct_flag
+    
+    if is_correct:
+        return {
+            'ok': True,
+            'correct': True,
+            'message': f'🎉 Congratulations! Flag accepted for {challenge_name}!',
+            'challenge': challenge_name
+        }, 200
+    else:
+        return {
+            'ok': True,
+            'correct': False,
+            'message': 'Incorrect flag. Keep trying!',
+            'challenge': challenge_name
+        }, 200
+
+
+@app.route('/api/ctf/challenges/<challenge_name>/hint', methods=['POST'])
+def ctf_challenge_hint(challenge_name):
+    """
+    Get a hint for a CTF challenge
+    Request: {"hint_index": 0}  # 0-based index
+    """
+    data = request.get_json() or {}
+    hint_index = data.get('hint_index', 0)
+    
+    challenge_map = {
+        'area64': 'ctf_challenges.area64.challenge',
+        'smalle': 'ctf_challenges.smalle.challenge',
+        'hidden_layers': 'ctf_challenges.hidden_layers.challenge',
+        'paper_script': 'ctf_challenges.paper_script.challenge',
+        'synthetic_stacks': 'ctf_challenges.synthetic_stacks.challenge'
+    }
+    
+    if challenge_name not in challenge_map:
+        return {'ok': False, 'error': 'Challenge not found'}, 404
+    
+    try:
+        import importlib
+        module = importlib.import_module(challenge_map[challenge_name])
+        challenge_data = module.generate_challenge('temp')
+        hints = challenge_data.get('hints', [])
+        
+        if hint_index < 0 or hint_index >= len(hints):
+            return {'ok': False, 'error': 'Invalid hint index'}, 400
+        
+        hint = hints[hint_index]
+        return {
+            'ok': True,
+            'hint': hint,
+            'hint_index': hint_index,
+            'total_hints': len(hints)
+        }, 200
+        
+    except Exception as e:
+        logger.error(f"Error getting hint for {challenge_name}: {e}")
+        return {'ok': False, 'error': str(e)}, 500
+
+
 @app.route('/api/testing-guide', methods=['GET'])
 def testing_guide():
     """Get testing guide for a specific vulnerability"""
