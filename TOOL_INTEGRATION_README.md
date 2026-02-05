@@ -162,7 +162,7 @@ cd /home/runner/work/aegisforgee/aegisforgee/sqlmap
 ```
 
 ### 5. FFUF Fuzzing Script (`ffuf/`)
-- **File**: `aegisforge_fuzzing.sh** (19 KB, 582 lines, executable)
+- **File**: `aegisforge_fuzzing.sh` (19 KB, 582 lines, executable)
 - **Features**:
   - Directory and file fuzzing
   - API endpoint discovery

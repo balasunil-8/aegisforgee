@@ -221,7 +221,7 @@ jobs:
   - type: report
     parameters:
       template: "traditional-json"
-      reportDir: "/home/runner/work/aegisforgee/aegisforgee/zap"
+      reportDir: "./zap"
       reportFile: "aegisforge_zap_report"
       reportTitle: "AegisForge Security Assessment"
       reportDescription: "Comprehensive security scan of AegisForge Red Team vulnerable endpoints"
@@ -231,7 +231,7 @@ jobs:
   - type: report
     parameters:
       template: "traditional-html"
-      reportDir: "/home/runner/work/aegisforgee/aegisforgee/zap"
+      reportDir: "./zap"
       reportFile: "aegisforge_zap_report"
       reportTitle: "AegisForge Security Assessment"
       reportDescription: "Comprehensive security scan of AegisForge Red Team vulnerable endpoints"
@@ -241,7 +241,7 @@ jobs:
   - type: report
     parameters:
       template: "traditional-xml"
-      reportDir: "/home/runner/work/aegisforgee/aegisforgee/zap"
+      reportDir: "./zap"
       reportFile: "aegisforge_zap_report"
       reportTitle: "AegisForge Security Assessment"
       reportDescription: "Comprehensive security scan of AegisForge Red Team vulnerable endpoints"
@@ -251,7 +251,7 @@ jobs:
   - type: report
     parameters:
       template: "traditional-md"
-      reportDir: "/home/runner/work/aegisforgee/aegisforgee/zap"
+      reportDir: "./zap"
       reportFile: "aegisforge_zap_report"
       reportTitle: "AegisForge Security Assessment"
       reportDescription: "Comprehensive security scan of AegisForge Red Team vulnerable endpoints"
@@ -261,4 +261,4 @@ jobs:
   - type: outputSummary
     parameters:
       format: "LONG"
-      summaryFile: "/home/runner/work/aegisforgee/aegisforgee/zap/scan_summary.txt"
+      summaryFile: "./zap/scan_summary.txt"
