@@ -1,298 +1,680 @@
+# 🛡️ AegisForge - Complete Security Testing Platform
 
-# SecurityForge - Professional API Security Testing Platform
+> **The most comprehensive dual-mode security learning platform for OWASP vulnerabilities**
 
-SecurityForge is a comprehensive API security testing and vulnerability research platform.
-Educate yourself on OWASP vulnerabilities with intentionally vulnerable endpoints.
+AegisForge is a professional-grade security testing and education platform featuring dual-mode architecture (Red Team vulnerable endpoints + Blue Team secure implementations) with complete OWASP coverage, CTF challenges, ML-based threat detection, and integrated security analytics.
+
+[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/balasunil-8/aegisforgee)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![OWASP](https://img.shields.io/badge/OWASP-Web%202021-red.svg)](https://owasp.org/www-project-top-ten/)
+[![OWASP](https://img.shields.io/badge/OWASP-API%202023-red.svg)](https://owasp.org/www-project-api-security/)
 
 ---
 
-## Quick Start (Windows PowerShell)
+## 📚 Table of Contents
 
-### Step 1: Setup Python Virtual Environment
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Quick Start](#-quick-start)
+- [Dual-Mode Operation](#-dual-mode-operation)
+- [Tool Integration](#-tool-integration)
+- [CTF Challenges](#-ctf-challenges)
+- [Security Analytics](#-security-analytics)
+- [Documentation](#-documentation)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
 
-```powershell
-cd c:\vuln_api_testing
+---
+
+## ✨ Features
+
+### 🎯 Dual-Mode Architecture
+- **Red Team Mode**: 40+ intentionally vulnerable endpoints covering all OWASP categories
+- **Blue Team Mode**: 52+ hardened secure implementations with defense-in-depth
+- **Comparison Mode**: Side-by-side testing of vulnerable vs secure code
+
+### 🔒 Complete OWASP Coverage
+- **OWASP Web Top 10 2021**: 100% coverage
+- **OWASP API Top 10 2023**: 100% coverage
+- Real-world vulnerability examples with exploitation paths
+
+### 🧩 Defense Module Library
+- **Input Validation**: SQL, XSS, command injection, path traversal protection
+- **Security Headers**: CSP, HSTS, X-Frame-Options, CSRF tokens
+- **Rate Limiting**: Configurable IP-based and user-based limits
+- **Access Control**: RBAC, object-level authorization, ownership validation
+
+### 🎮 CTF Challenge System
+- **18 Progressive Challenges**: 100-300 points each (2,700 total points)
+- **Real-Time Leaderboard**: Competitive scoring with timestamps
+- **Difficulty Levels**: Easy, Medium, Hard
+- **Categories**: SQLi, XSS, Access Control, Authentication, Injection, SSRF, Business Logic
+
+### 🤖 ML-Based Threat Detection
+- **Enhanced AI Detector**: Ensemble Random Forest + Gradient Boosting
+- **Explainable AI**: Feature importance and attack type classification
+- **Remediation Suggestions**: Actionable security recommendations
+- **Rule-Based Fallback**: Works without training data
+
+### 📊 Security Analytics Dashboard
+- **Real-Time Monitoring**: Attack logs, trends, and statistics
+- **Threat Intelligence**: Risk assessment and attack patterns
+- **Endpoint Analytics**: Per-endpoint attack rates and types
+- **User Analytics**: Track security events per user
+- **Timeline Visualization**: Hourly/daily attack breakdowns
+
+### 🔧 Professional Tool Integration
+- **Postman**: 141+ pre-built requests with automated tests
+- **Burp Suite**: Project configuration + 380 intruder payloads
+- **OWASP ZAP**: Automation framework with full scan policies
+- **SQLMap**: Executable test suite for all SQLi endpoints
+- **FFUF**: Fuzzing scripts with auto-generated wordlists
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        AegisForge Platform                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────────┐         ┌──────────────────┐                │
+│  │   Red Team API   │         │  Blue Team API   │                │
+│  │  Port: 5000      │         │  Port: 5001      │                │
+│  │  40+ Vulnerable  │         │  52+ Secure      │                │
+│  │  Endpoints       │         │  Endpoints       │                │
+│  └────────┬─────────┘         └────────┬─────────┘                │
+│           │                            │                           │
+│           └────────────┬───────────────┘                           │
+│                        │                                           │
+│           ┌────────────▼──────────────┐                           │
+│           │  Dual-Mode Controller     │                           │
+│           │  (aegisforge_modes.py)    │                           │
+│           └────────────┬──────────────┘                           │
+│                        │                                           │
+│        ┌───────────────┼───────────────────┐                      │
+│        │               │                   │                      │
+│  ┌─────▼────┐   ┌─────▼──────┐   ┌───────▼──────┐               │
+│  │ Defense  │   │ Analytics  │   │ CTF System   │               │
+│  │ Modules  │   │ Dashboard  │   │ Leaderboard  │               │
+│  │ 4 Libs   │   │ Port: 5003 │   │ Port: 5002   │               │
+│  └──────────┘   └────────────┘   └──────────────┘               │
+│                                                                    │
+│  ┌────────────────────────────────────────────────────┐          │
+│  │              ML Threat Detector                     │          │
+│  │  Random Forest + Gradient Boosting Ensemble        │          │
+│  │  Feature Extraction • Attack Classification        │          │
+│  └────────────────────────────────────────────────────┘          │
+│                                                                    │
+│  ┌────────────────────────────────────────────────────┐          │
+│  │              Tool Integration Layer                 │          │
+│  │  Postman • Burp • ZAP • SQLMap • FFUF              │          │
+│  └────────────────────────────────────────────────────┘          │
+│                                                                    │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Component Breakdown
+
+| Component | Port | Purpose | Files |
+|-----------|------|---------|-------|
+| Red Team API | 5000 | Vulnerable endpoints | `aegisforge_api.py` |
+| Blue Team API | 5001 | Secure implementations | `aegisforge_blue.py` |
+| CTF Leaderboard | 5002 | Challenge system | `aegisforge_leaderboard.py` |
+| Analytics Dashboard | 5003 | Security monitoring | `aegisforge_analytics.py` |
+| Dual-Mode Controller | - | Service orchestration | `aegisforge_modes.py` |
+| Defense Library | - | Security utilities | `defenses/*.py` |
+| AI Detector | - | Threat detection | `ai/enhanced_detector.py` |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.8+
+- pip package manager
+- (Optional) Docker for containerized deployment
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/balasunil-8/aegisforgee.git
+cd aegisforgee
 
 # Create virtual environment
 python -m venv .venv
 
-# Activate it
-.\.venv\Scripts\activate
+# Activate virtual environment
+# On Linux/Mac:
+source .venv/bin/activate
+# On Windows:
+.venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Initialize database
+python init_db.py
 ```
 
-### Step 2: Run the App (local)
+### Running AegisForge
 
-Start the Flask app directly:
+#### Option 1: Interactive Mode (Recommended)
 
-```powershell
-python pentestlab_api.py
+```bash
+python aegisforge_modes.py
 ```
 
-Or build & run with Docker (recommended for portability):
+This launches an interactive menu where you can:
+1. Start Red Team API (vulnerable)
+2. Start Blue Team API (secure)
+3. Start Comparison Mode (both)
+4. Stop all services
+5. Show status
 
-```powershell
-docker build -t securityforge:local .
-docker run -p 5000:5000 --rm securityforge:local
+#### Option 2: Command Line Mode
+
+```bash
+# Start Red Team only
+python aegisforge_modes.py red
+
+# Start Blue Team only
+python aegisforge_modes.py blue
+
+# Start both for comparison
+python aegisforge_modes.py compare
+
+# Check status
+python aegisforge_modes.py status
 ```
 
-Open `http://localhost:5000/api/health` to verify the service.
+#### Option 3: Individual Services
 
-### Postman / Tooling
+```bash
+# Red Team API (Port 5000)
+python aegisforge_api.py
 
-Import the provided Postman collection and environment (if present). Use Postman, Burp Suite, or OWASP ZAP against the lab running locally or in a sandboxed container.
+# Blue Team API (Port 5001)
+python aegisforge_blue.py
 
----
+# CTF Leaderboard (Port 5002)
+python aegisforge_leaderboard.py
 
-## Rebrand and Safe Deployment Notes
-
-SecurityForge is intentionally vulnerable for learning. Do not expose a vulnerable instance publicly without sandboxing per-user labs and egress controls. Use container isolation for any public deployment and enforce usage policies.
-
-
----
-
-## Practical Explanations (60-min Classroom Demo)
-
-### **Phase 1: Setup & Authentication (10 min)**
-
-```
-1. Start API: python .\vulnshop.py
-2. Import Postman collection + environment
-3. Run "01 - Auth → Login User1" → save JWT token to environment
-4. Run "01 - Auth → Login User2" → save second token
+# Analytics Dashboard (Port 5003)
+python aegisforge_analytics.py
 ```
 
-**What Students Learn:**
-- How tokens are automatically saved to environment variables
-- How to switch between user contexts
-- Token structure (JWT decode)
+### Docker Deployment
 
----
+```bash
+# Build image
+docker build -t aegisforge:latest .
 
-### **Phase 2: Exploitation (35 min)**
+# Run Red Team
+docker run -p 5000:5000 aegisforge:latest python aegisforge_api.py
 
-**API1: BOLA Demo**
-```
-1. Login as User1
-2. Run "02 - API1 BOLA → Read other user's order" (read order_id=2 which belongs to user2)
-3. RESULT (Vulnerable): You GET order data even though you don't own it ❌
-4. RESULT (Secure): You GET 403 Forbidden ✅
-```
+# Run Blue Team
+docker run -p 5001:5001 aegisforge:latest python aegisforge_blue.py
 
-**Explanation:**
-> "The API doesn't check ownership. Any authenticated user can access ANY object by changing the ID in the URL. This is called BOLA (Broken Object Level Authorization). Fix: Always verify object ownership before returning data."
-
----
-
-**API3: Mass Assignment Demo**
-```
-1. Login as User1 (normal user, not admin)
-2. Run "04 - API3 → Mass Assignment - Escalate to admin"
-   - Send PATCH with: {"is_admin": true, "role": "admin"}
-3. RESULT (Vulnerable): User1 becomes admin ❌
-4. RESULT (Secure): Fields ignored, still normal user ✅
-```
-
-**Explanation:**
-> "API3 has two flaws: (a) Mass assignment - it blindly updates any field you send, and (b) Excessive data exposure - passwords are returned in responses. Always allowlist fields and strip sensitive data from API responses."
-
----
-
-**API6: Business Flow Demo**
-```
-1. Run "07 - API6 → Create Order" (stores order_id in environment)
-2. Run "07 - API6 → Confirm order WITHOUT paying"
-3. RESULT (Vulnerable): Order status changes to CONFIRMED even though not paid ❌
-4. RESULT (Secure): Returns 409 error "Must be PAID first" ✅
-```
-
-**Explanation:**
-> "The API doesn't enforce business flow rules. You can confirm an order without paying. Always validate state transitions on the server."
-
----
-
-**API7: SSRF Demo**
-```
-1. Run "08 - API7 → SSRF - fetch internal URL"
-   - Tries to fetch: http://127.0.0.1:5000/api/health
-2. RESULT (Vulnerable): API fetches internal endpoint and returns data ❌
-3. RESULT (Secure): Returns 403 "Localhost blocked" ✅
-```
-
-**Explanation:**
-> "SSRF lets attackers use your API server to probe internal networks. Always validate outbound URLs: block internal IPs (127.0.0.1, 10.0.0.0/8, 169.254.169.254 metadata), and only allow whitelisted external APIs."
-
----
-
-### **Phase 3: Patching & Re-Testing (15 min)**
-
-```
-1. Stop vulnshop.py (Ctrl+C)
-2. Run: python .\secure_vulnshop.py
-3. In Postman: Re-run all tests
-4. Show class the PASS results
-```
-
-**Explain each fix:**
-
-| Vulnerability | Fix |
-|---|---|
-| API1 BOLA | Added `require_owner_or_admin()` checks |
-| API2 Broken Auth | Hashed passwords with `werkzeug.security`, added rate limiting |
-| API3 Mass Assignment | Whitelisted safe fields, removed password from responses |
-| API4 Resource Consumption | Added limit caps (max 100, min 1) |
-| API5 Function Auth | Added `require_admin()` role checks |
-| API6 Business Flow | Enforced `status != PAID` check before confirm |
-| API7 SSRF | Added IP validation, block private/loopback ranges |
-| API8 Misconfiguration | Disabled DEBUG, restricted CORS, strong default secret |
-| API9 Inventory | Removed `/api/v1/debug/users` endpoint entirely |
-| API10 Unsafe Consumption | Added allowlist for provider URLs |
-
----
-
-## Advanced: Setting Instructor Machine IP (for LAN students)
-
-If students are connecting from other machines on the LAN:
-
-```powershell
-# Get your machine IP
-ipconfig
-
-# Example output: IPv4 Address: 192.168.1.100
-```
-
-In Postman Environment, change:
-```
-base_url: http://192.168.1.100:5000
-```
-
-Students can now access:
-```
-http://192.168.1.100:5000/api/health
+# Run with docker-compose (all services)
+docker-compose up
 ```
 
 ---
 
-## API Endpoint Reference
+## 🔄 Dual-Mode Operation
 
-### **Authentication**
-```
-POST /api/auth/login
-Body: {"email": "user1@example.com", "password": "Password123"}
-```
+AegisForge's unique dual-mode architecture allows side-by-side comparison of vulnerable and secure implementations.
 
-### **Users**
-```
-GET /api/users/<id>                      # Get user profile (need token)
-PATCH /api/users/<id>                   # Update user (need token)
-```
+### Red Team Mode (Port 5000)
 
-### **Products**
-```
-GET /api/products?limit=10&offset=0      # List products (no auth needed)
-DELETE /api/products/<id>                # Delete product (need token)
-```
+**Purpose**: Learn exploitation techniques
+- Intentionally vulnerable endpoints
+- No input validation
+- Insecure coding practices
+- Verbose error messages
+- Educational attack examples
 
-### **Orders**
-```
-POST /api/orders                         # Create order (need token)
-GET /api/orders/<id>                     # Get order (need token)
-POST /api/orders/<id>/pay                # Pay for order (need token)
-POST /api/orders/<id>/confirm            # Confirm order (need token)
+```bash
+# Example: SQL Injection
+curl "http://localhost:5000/api/injection/sqli/boolean?username=' OR '1'='1"
+
+# Example: XSS
+curl "http://localhost:5000/api/xss/reflected?message=<script>alert('XSS')</script>"
 ```
 
-### **Admin**
-```
-GET /api/admin/users                     # List all users (need admin token)
+### Blue Team Mode (Port 5001)
+
+**Purpose**: Learn secure coding practices
+- Hardened implementations
+- Input validation and sanitization
+- Defense-in-depth layers
+- Security headers
+- Parameterized queries
+
+```bash
+# Example: SQL Injection Protection
+curl "http://localhost:5001/api/blue/injection/sqli/boolean?username=' OR '1'='1"
+# Returns: 400 Bad Request - Invalid input detected
+
+# Example: XSS Protection
+curl "http://localhost:5001/api/blue/xss/reflected?message=<script>alert('XSS')</script>"
+# Returns: HTML-encoded output, CSP headers
 ```
 
-### **SSRF**
-```
-POST /api/utils/fetch-url
-Body: {"url": "http://example.com"}
-```
+### Comparison Mode
 
-### **Shipping Quote (API10)**
-```
-POST /api/shipping/quote
-Body: {"provider_url": "...", "order_id": 1}
+Run both APIs simultaneously to compare responses:
+
+```bash
+# Start comparison mode
+python aegisforge_modes.py compare
+
+# Test vulnerable endpoint
+curl http://localhost:5000/api/injection/sqli/boolean?username=admin
+
+# Test secure endpoint
+curl http://localhost:5001/api/blue/injection/sqli/boolean?username=admin
 ```
 
 ---
 
-## Troubleshooting
+## 🔧 Tool Integration
 
-### **Port 5000 Already in Use**
-```powershell
-# Find what's using port 5000
-netstat -ano | findstr :5000
+AegisForge provides ready-to-use configurations for professional security testing tools.
 
-# Kill the process (replace PID)
-taskkill /PID <PID> /F
+### Postman Collection
 
-# Restart API
-python .\vulnshop.py
+Located in `postman/`:
+- **141+ Requests**: Complete coverage of all endpoints
+- **Automated Tests**: Pre/post-request scripts
+- **Environment Variables**: Auto-populated tokens and IDs
+- **Documentation**: Inline descriptions and examples
+
+```bash
+# Import collection
+File → Import → postman/AegisForge_Complete_Collection.json
+
+# Run with Newman (CLI)
+newman run postman/AegisForge_Complete_Collection.json
 ```
 
-### **Module Not Found Errors**
-```powershell
-# Ensure virtual environment is activated
-.\.venv\Scripts\activate
+### Burp Suite
 
-# Reinstall
-pip install -r requirements.txt
+Located in `burp/`:
+- **Project Configuration**: Pre-configured scope and settings
+- **Intruder Payloads**: 380+ attack payloads
+  - SQL Injection (120 payloads)
+  - XSS (150 payloads)
+  - Command Injection (60 payloads)
+  - Path Traversal (50 payloads)
+
+### OWASP ZAP
+
+Located in `zap/`:
+- **Automation Framework**: Full scan configuration
+- **Custom Rules**: AegisForge-specific detection
+- **CI/CD Integration**: GitHub Actions ready
+
+```bash
+# Run automated scan
+zap-cli --api-key YOUR_KEY scan http://localhost:5000 \
+  --config-file zap/automation_scan.yaml
 ```
 
-### **JWT Token Issues in Postman**
-1. Run `01 - Auth → Login User1` first
-2. Check in Postman → Environments → VulnShop - Local Lab → `access_token` is populated
-3. If empty, re-run Login
+### SQLMap
+
+Located in `sqlmap/`:
+- **20+ Automated Tests**: All SQL injection endpoints
+- **Tamper Scripts**: WAF bypass techniques
+- **Batch Execution**: Test all endpoints at once
+
+```bash
+# Run all SQLMap tests
+cd sqlmap
+chmod +x aegisforge_tests.sh
+./aegisforge_tests.sh
+```
+
+### FFUF
+
+Located in `ffuf/`:
+- **Endpoint Discovery**: Find hidden endpoints
+- **Parameter Fuzzing**: Test all input vectors
+- **Auto-Generated Wordlists**: Custom payloads for AegisForge
+
+```bash
+# Run fuzzing suite
+cd ffuf
+chmod +x aegisforge_fuzzing.sh
+./aegisforge_fuzzing.sh
+```
 
 ---
 
-## Classroom Teaching Tips
+## 🎮 CTF Challenges
 
-### **5-Minute Recap (Print This)**
+AegisForge includes 18 progressive CTF challenges across all difficulty levels.
 
-**OWASP API Top 10 = the 10 most dangerous API flaws:**
+### Challenge Categories
 
-1. **BOLA** - Exposed = no ownership checks
-2. **Broken Auth** = weak passwords, no rate limit
-3. **Mass Assignment** = blindly updates all fields
-4. **Resource Hogging** = no pagination caps
-5. **Function Auth** = no role checks
-6. **Business Logic** = skips required steps
-7. **SSRF** = fetches internal IPs
-8. **Misconfig** = debug on, CORS wide open
-9. **Inventory** = old endpoints still exposed
-10. **Unsafe 3rd Party** = trusts external APIs blindly
+| Category | Challenges | Total Points | Difficulty Range |
+|----------|------------|--------------|------------------|
+| SQL Injection | 3 | 450 | Easy - Medium |
+| XSS | 2 | 250 | Easy - Medium |
+| Access Control | 3 | 500 | Easy - Medium |
+| Authentication | 2 | 250 | Easy - Medium |
+| Injection (Other) | 2 | 450 | Medium - Hard |
+| SSRF | 1 | 200 | Medium |
+| Deserialization | 1 | 300 | Hard |
+| Business Logic | 2 | 400 | Medium - Hard |
+| Info Disclosure | 1 | 100 | Easy |
+| CSRF | 1 | 150 | Medium |
 
-**Fix them all:** Always validate, authenticate, and authorize.
+### Using the CTF System
+
+```bash
+# Start CTF leaderboard
+python aegisforge_leaderboard.py
+
+# View challenges
+curl http://localhost:5002/api/ctf/challenges
+
+# Submit flag
+curl -X POST http://localhost:5002/api/ctf/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your_username",
+    "challenge_id": "sqli-001",
+    "flag": "AEGIS{your_flag_here}"
+  }'
+
+# View leaderboard
+curl http://localhost:5002/api/ctf/leaderboard
+```
+
+### Flag Format
+
+All flags follow the format: `AEGIS{flag_content_here}`
+
+Example: `AEGIS{b00l34n_sql1_m4st3r}`
 
 ---
 
-## Files Overview
+## 📊 Security Analytics
 
-| File | Purpose |
-|------|---------|
-| `vulnshop.py` | Intentionally vulnerable server (for exploitation) |
-| `secure_vulnshop.py` | Patched server (for showing fixes) |
-| `requirements.txt` | Python dependencies (Flask, JWT, SQLAlchemy, etc.) |
-| `VulnShop_Collection.json` | Postman requests + tests (import this) |
-| `VulnShop_Environment.json` | Postman variables (import this) |
-| `README.md` | This file |
+Real-time security monitoring and threat intelligence.
+
+### Starting Analytics Dashboard
+
+```bash
+python aegisforge_analytics.py
+# Accessible at http://localhost:5003
+```
+
+### Available Analytics
+
+#### Attack Summary
+```bash
+curl http://localhost:5003/api/analytics/summary?hours=24
+```
+Returns:
+- Total attacks in period
+- Attack types breakdown
+- Block rate percentage
+- Hourly breakdown
+- Peak attack times
+
+#### Endpoint Analytics
+```bash
+curl http://localhost:5003/api/analytics/endpoints
+```
+Returns per-endpoint:
+- Total requests
+- Attack rate percentage
+- Attack types
+
+#### Threat Intelligence
+```bash
+curl http://localhost:5003/api/analytics/threat-intelligence
+```
+Returns:
+- Attack trends
+- Risk assessment
+- Top attack patterns
+- Security recommendations
 
 ---
 
-## Resources
+## 📖 Documentation
 
-- **OWASP API Top 10 (2023):** https://owasp.org/www-project-api-security/
-- **Flask Documentation:** https://flask.palletsprojects.com/
-- **Postman Docs:** https://learning.postman.com/
-- **JWT (JSON Web Tokens):** https://jwt.io/
+Comprehensive documentation is provided for all aspects of AegisForge:
+
+| Document | Description |
+|----------|-------------|
+| [README.md](README.md) | This file - overview and quick start |
+| [SECURITY_COMPARISON.md](SECURITY_COMPARISON.md) | Side-by-side Red vs Blue comparisons |
+| [API_DOCUMENTATION.md](API_DOCUMENTATION.md) | Complete API reference |
+| [TOOL_INTEGRATION_README.md](TOOL_INTEGRATION_README.md) | Testing tools setup guide |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Production deployment instructions |
+| [postman/README.md](postman/README.md) | Postman collection guide |
 
 ---
 
-**Happy hacking! 🔒**
+## 📁 Project Structure
+
+```
+aegisforgee/
+├── aegisforge_api.py              # Red Team vulnerable endpoints
+├── aegisforge_blue.py             # Blue Team secure endpoints
+├── aegisforge_modes.py            # Dual-mode orchestration
+├── aegisforge_leaderboard.py      # CTF challenge system
+├── aegisforge_analytics.py        # Security analytics dashboard
+│
+├── defenses/                      # Defense module library
+│   ├── __init__.py
+│   ├── input_validator.py         # Input validation utilities
+│   ├── security_headers.py        # Security header management
+│   ├── rate_limiter.py            # Rate limiting implementation
+│   └── access_control.py          # Authorization utilities
+│
+├── ai/                            # ML-based threat detection
+│   ├── __init__.py
+│   └── enhanced_detector.py       # Enhanced AI detector
+│
+├── postman/                       # Postman collection
+│   ├── AegisForge_Complete_Collection.json
+│   ├── QUICK_START.md
+│   └── README.md
+│
+├── burp/                          # Burp Suite configuration
+│   ├── AegisForge_Project.json
+│   └── AegisForge_Intruder_Payloads.txt
+│
+├── zap/                           # OWASP ZAP automation
+│   └── automation_scan.yaml
+│
+├── sqlmap/                        # SQLMap test scripts
+│   └── aegisforge_tests.sh
+│
+├── ffuf/                          # FFUF fuzzing scripts
+│   └── aegisforge_fuzzing.sh
+│
+├── ctf_challenges/                # CTF challenge files
+│   └── [challenge directories]
+│
+├── models/                        # ML model storage
+│
+├── docs/                          # Additional documentation
+│
+├── requirements.txt               # Python dependencies
+├── docker-compose.yml             # Docker orchestration
+├── Dockerfile                     # Container definition
+└── README.md                      # This file
+```
+
+---
+
+## 🎓 Learning Path
+
+Recommended learning progression:
+
+### Beginner (Week 1-2)
+1. Start with Red Team mode
+2. Complete Easy CTF challenges (SQL Injection, XSS, IDOR)
+3. Use Postman collection for guided exploration
+4. Review SECURITY_COMPARISON.md for each vulnerability
+
+### Intermediate (Week 3-4)
+1. Switch to Comparison mode
+2. Complete Medium CTF challenges
+3. Use Burp Suite for manual exploitation
+4. Study Blue Team implementations
+5. Implement your own fixes
+
+### Advanced (Week 5-6)
+1. Complete Hard CTF challenges
+2. Use SQLMap and FFUF for advanced exploitation
+3. Analyze ML detector results
+4. Review analytics dashboard insights
+5. Contribute to defense modules
+
+---
+
+## 🔬 Testing Examples
+
+### SQL Injection Testing
+
+```bash
+# Red Team - Vulnerable
+curl "http://localhost:5000/api/injection/sqli/boolean?username=' OR '1'='1"
+# ❌ Returns all users
+
+# Blue Team - Secure
+curl "http://localhost:5001/api/blue/injection/sqli/boolean?username=' OR '1'='1"
+# ✅ Returns 400 - Invalid input detected
+```
+
+### XSS Testing
+
+```bash
+# Red Team - Vulnerable
+curl "http://localhost:5000/api/xss/reflected?message=<script>alert(1)</script>"
+# ❌ Script executes
+
+# Blue Team - Secure
+curl "http://localhost:5001/api/blue/xss/reflected?message=<script>alert(1)</script>"
+# ✅ HTML encoded output + CSP headers
+```
+
+### IDOR Testing
+
+```bash
+# Red Team - Vulnerable
+curl "http://localhost:5000/api/access/idor/1"
+# ❌ Returns admin data without authentication
+
+# Blue Team - Secure
+curl "http://localhost:5001/api/blue/access/idor/1"
+# ✅ Returns 401 - Authentication required
+```
+
+---
+
+## 🛠️ Development
+
+### Adding New Vulnerabilities
+
+1. Add vulnerable endpoint to `aegisforge_api.py`
+2. Add secure counterpart to `aegisforge_blue.py`
+3. Update `SECURITY_COMPARISON.md` with comparison
+4. Add Postman requests for both endpoints
+5. Create CTF challenge if appropriate
+
+### Adding New Defense Modules
+
+1. Create module in `defenses/` directory
+2. Import in relevant API files
+3. Add unit tests
+4. Update documentation
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Areas for contribution:
+- New vulnerability examples
+- Defense module improvements
+- CTF challenges
+- Documentation enhancements
+- Tool integrations
+- ML model improvements
+
+---
+
+## ⚠️ Security Warning
+
+**IMPORTANT**: AegisForge contains intentionally vulnerable code for educational purposes.
+
+### DO NOT:
+- Deploy Red Team mode to production
+- Expose AegisForge to the public internet without proper isolation
+- Use in production environments
+- Use on systems containing real user data
+
+### DO:
+- Use in isolated lab environments
+- Use for security training and education
+- Use for penetration testing practice
+- Contribute improvements and new features
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- OWASP Foundation for security standards
+- Security research community
+- Contributors and users
+
+---
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/balasunil-8/aegisforgee/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/balasunil-8/aegisforgee/discussions)
+- **Documentation**: See `/docs` directory
+
+---
+
+## 🗺️ Roadmap
+
+### Version 2.1 (Planned)
+- [ ] GraphQL vulnerability examples
+- [ ] WebSocket security testing
+- [ ] JWT exploitation scenarios
+- [ ] Advanced SSRF techniques
+- [ ] Mobile API security patterns
+
+### Version 3.0 (Future)
+- [ ] Web UI for analytics dashboard
+- [ ] Automated exploit generation
+- [ ] Integration with SIEM systems
+- [ ] Advanced ML models (Deep Learning)
+- [ ] Multi-language support
+
+---
+
+**Built with ❤️ for the security community**
+
+*AegisForge v2.0 - Complete Security Testing Platform*
