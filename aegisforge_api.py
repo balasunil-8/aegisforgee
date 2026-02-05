@@ -20,9 +20,20 @@ import hashlib
 import secrets
 from functools import wraps
 import logging
+
 # AI Detector
 from ai_detector import get_detector
 from ctf_manager import list_challenges, generate_challenge, read_challenge
+
+# Mode switching and defenses
+from aegisforge_modes import (
+    get_current_mode, toggle_mode, get_mode_info, 
+    is_red_team_mode, is_blue_team_mode, SecurityMode
+)
+from defenses import (
+    add_security_headers, check_rate_limit, get_waf, 
+    validate_url, sanitize_sql_input, sanitize_xss_input
+)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -30,6 +41,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///aegisforge.db'
 app.config['SECRET_KEY'] = 'aegisforge-dev-secret-2026'
 app.config['JWT_SECRET_KEY'] = 'aegisforge-jwt-2026-secret'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=24)
+app.config['SESSION_COOKIE_SECURE'] = False  # Set True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -624,13 +638,96 @@ def path_traversal():
 @app.route('/api/health', methods=['GET'])
 def health():
     """Health check endpoint"""
+    mode_info = get_mode_info()
     return {
         'ok': True,
         'service': 'AegisForge',
-        'version': '2.0',
+        'version': '1.0.0',
+        'tagline': 'Master Offensive & Defensive Security',
+        'mode': mode_info['mode'],
+        'mode_name': mode_info['name'],
         'vulnerabilities_count': 52,
         'endpoints_count': 30,
         'timestamp': datetime.utcnow().isoformat()
+    }, 200
+
+
+@app.route('/api/mode/status', methods=['GET'])
+def mode_status():
+    """Get current security mode status"""
+    mode_info = get_mode_info()
+    return {
+        'ok': True,
+        'current_mode': mode_info
+    }, 200
+
+
+@app.route('/api/mode/toggle', methods=['POST'])
+def mode_toggle():
+    """Toggle between Red Team and Blue Team modes"""
+    try:
+        new_mode = toggle_mode()
+        mode_info = get_mode_info()
+        
+        return {
+            'ok': True,
+            'message': f'Switched to {mode_info["name"]} mode',
+            'previous_mode': 'red' if new_mode == SecurityMode.BLUE_TEAM else 'blue',
+            'current_mode': mode_info
+        }, 200
+    except Exception as e:
+        return {'ok': False, 'error': str(e)}, 500
+
+
+@app.route('/api/mode/set', methods=['POST'])
+def mode_set():
+    """Set specific security mode"""
+    data = request.get_json() or {}
+    mode_str = data.get('mode', '').lower()
+    
+    if mode_str not in ['red', 'blue']:
+        return {'ok': False, 'error': 'Mode must be "red" or "blue"'}, 400
+    
+    try:
+        from aegisforge_modes import set_mode
+        mode = SecurityMode.RED_TEAM if mode_str == 'red' else SecurityMode.BLUE_TEAM
+        set_mode(mode)
+        
+        mode_info = get_mode_info()
+        return {
+            'ok': True,
+            'message': f'Mode set to {mode_info["name"]}',
+            'current_mode': mode_info
+        }, 200
+    except Exception as e:
+        return {'ok': False, 'error': str(e)}, 500
+
+
+@app.route('/api/defenses/info', methods=['GET'])
+def defenses_info():
+    """Get information about available security defenses"""
+    from defenses import get_security_headers_info
+    waf = get_waf()
+    
+    return {
+        'ok': True,
+        'defenses': {
+            'input_validation': {
+                'available': True,
+                'types': ['SQL injection', 'XSS', 'Command injection', 'Path traversal']
+            },
+            'security_headers': get_security_headers_info(),
+            'rate_limiting': {
+                'available': True,
+                'default_limit': '100 requests per 60 seconds',
+                'strict_limit': '10 requests per 60 seconds (for auth endpoints)'
+            },
+            'waf_rules': {
+                'available': True,
+                'rule_count': sum(len(rules) for rules in waf.rules.values()),
+                'categories': list(waf.rules.keys())
+            }
+        }
     }, 200
 
 
