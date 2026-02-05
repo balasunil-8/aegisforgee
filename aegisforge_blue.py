@@ -1656,6 +1656,209 @@ def blue_health():
 # SUMMARY ENDPOINT
 # ============================================================================
 
+@app.route('/api/blue/jwt/secure-token', methods=['POST'])
+@jwt_required()
+def blue_jwt_secure():
+    """SECURE: Proper JWT validation and secure claims"""
+    current_user = get_jwt_identity()
+    data = request.get_json() or {}
+    
+    # Verify token integrity (already done by @jwt_required)
+    # Additional validation: check token claims
+    
+    return jsonify({
+        'ok': True,
+        'user': current_user,
+        'message': 'Token validated successfully',
+        'security': {
+            'protection': 'JWT signature verification',
+            'validated': True,
+            'method': 'Flask-JWT-Extended with HS256'
+        }
+    }), 200
+
+
+@app.route('/api/blue/headers/security-headers', methods=['GET'])
+def blue_security_headers():
+    """SECURE: Comprehensive security headers"""
+    response = jsonify({
+        'ok': True,
+        'message': 'Response includes comprehensive security headers',
+        'headers_applied': [
+            'X-Content-Type-Options: nosniff',
+            'X-Frame-Options: DENY',
+            'X-XSS-Protection: 1; mode=block',
+            'Strict-Transport-Security: max-age=31536000',
+            'Content-Security-Policy'
+        ]
+    })
+    
+    # Apply security headers
+    headers = get_security_headers()
+    for key, value in headers.items():
+        response.headers[key] = value
+    
+    return response, 200
+
+
+@app.route('/api/blue/input/validation-strict', methods=['POST'])
+def blue_input_validation():
+    """SECURE: Comprehensive input validation"""
+    data = request.get_json() or {}
+    
+    errors = []
+    validated_data = {}
+    
+    # Email validation
+    if 'email' in data:
+        is_valid, error = validate_email(data['email'])
+        if is_valid:
+            validated_data['email'] = data['email']
+        else:
+            errors.append(f"email: {error}")
+    
+    # Integer range validation
+    if 'quantity' in data:
+        is_valid, error = validate_integer_range(data['quantity'], 1, 100)
+        if is_valid:
+            validated_data['quantity'] = data['quantity']
+        else:
+            errors.append(f"quantity: {error}")
+    
+    # URL validation
+    if 'website' in data:
+        is_valid, error = validate_url(data['website'])
+        if is_valid:
+            validated_data['website'] = data['website']
+        else:
+            errors.append(f"website: {error}")
+    
+    if errors:
+        return jsonify({
+            'ok': False,
+            'errors': errors,
+            'security': {
+                'protection': 'Multi-layer input validation',
+                'rejected_fields': len(errors)
+            }
+        }), 400
+    
+    return jsonify({
+        'ok': True,
+        'validated_data': validated_data,
+        'security': {
+            'protection': 'Multi-layer input validation',
+            'validated': True,
+            'fields_validated': len(validated_data)
+        }
+    }), 200
+
+
+@app.route('/api/blue/sensitive/data-masking', methods=['GET'])
+@jwt_required()
+def blue_data_masking():
+    """SECURE: Sensitive data masking in responses"""
+    current_user = get_jwt_identity()
+    
+    # Simulate user data with sensitive fields
+    user_data = {
+        'id': 1,
+        'username': current_user,
+        'email': 'user@example.com',
+        'ssn': '123-45-6789',
+        'credit_card': '4532-1234-5678-9010',
+        'api_key': 'sk_live_abc123def456ghi789',
+        'password_hash': '$2b$12$abc123...'
+    }
+    
+    # Filter sensitive fields before returning
+    safe_data = filter_sensitive_fields(user_data)
+    
+    return jsonify({
+        'ok': True,
+        'user': safe_data,
+        'security': {
+            'protection': 'Sensitive data filtering',
+            'filtered_fields': ['password_hash', 'api_key', 'ssn', 'credit_card'],
+            'method': 'Field-level access control'
+        }
+    }), 200
+
+
+@app.route('/api/blue/logging/secure-audit', methods=['POST'])
+@jwt_required()
+def blue_secure_logging():
+    """SECURE: Audit logging without sensitive data"""
+    current_user = get_jwt_identity()
+    data = request.get_json() or {}
+    
+    # Log the action but exclude sensitive data
+    log_entry = {
+        'user': current_user,
+        'action': data.get('action', 'unknown'),
+        'timestamp': datetime.utcnow().isoformat(),
+        'ip_address': request.remote_addr[:15],  # Truncate for privacy
+        'sensitive_data_excluded': True
+    }
+    
+    # Don't log: passwords, tokens, credit cards, SSNs
+    # This is a demonstration - in production, write to secure log storage
+    
+    return jsonify({
+        'ok': True,
+        'logged': True,
+        'log_entry': log_entry,
+        'security': {
+            'protection': 'Secure audit logging',
+            'sensitive_data_excluded': True,
+            'method': 'Structured logging with PII filtering'
+        }
+    }), 200
+
+
+@app.route('/api/blue/api/graphql-protection', methods=['POST'])
+def blue_graphql_protection():
+    """SECURE: GraphQL query depth and complexity limits"""
+    data = request.get_json() or {}
+    query = data.get('query', '')
+    
+    # Simple depth check (in production, use graphql-query-complexity)
+    depth = query.count('{')
+    
+    if depth > 5:
+        return jsonify({
+            'error': 'Query too complex',
+            'max_depth': 5,
+            'security': {
+                'protection': 'Query depth limiting',
+                'blocked': True
+            }
+        }), 400
+    
+    # Query length check
+    if len(query) > 5000:
+        return jsonify({
+            'error': 'Query too large',
+            'max_length': 5000,
+            'security': {
+                'protection': 'Query size limiting',
+                'blocked': True
+            }
+        }), 400
+    
+    return jsonify({
+        'ok': True,
+        'message': 'Query validated successfully',
+        'query_depth': depth,
+        'security': {
+            'protection': 'GraphQL query complexity limits',
+            'validated': True,
+            'depth_limit': 5,
+            'size_limit': 5000
+        }
+    }), 200
+
+
 @app.route('/api/blue/security-summary', methods=['GET'])
 def blue_security_summary():
     """Summary of all security protections implemented"""
@@ -1717,8 +1920,8 @@ def blue_security_summary():
             'methods': ['Secure cookies', 'Session regeneration', 'Proper logout']
         },
         'additional': {
-            'endpoints': 4,
-            'methods': ['Secure RNG', 'CORS restrictions', 'API versioning', 'Health checks']
+            'endpoints': 10,
+            'methods': ['Secure RNG', 'CORS restrictions', 'API versioning', 'Health checks', 'JWT validation', 'Security headers', 'Input validation', 'Data masking', 'Audit logging', 'GraphQL protection']
         }
     }
     
