@@ -19,6 +19,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
 MANIFEST
 
 # Virtual Environment
@@ -43,6 +49,38 @@ instance/
 *.swp
 *.swo
 *~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Model files (large)
+models/*.joblib
+models/*.pkl
+models/*.h5
+
+# Temporary files
+*.tmp
+*.bak
+.cache/
+
+# Build artifacts
+*.pyc
+*.pyo
+*.pyd
+.Python
 .DS_Store
 
 # Models & AI
