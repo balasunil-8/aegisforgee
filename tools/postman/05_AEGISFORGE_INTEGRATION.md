@@ -171,7 +171,7 @@ If you see "Connection refused" or "Could not connect," AegisForge isn't running
 **Starting AegisForge:**
 ```bash
 # Navigate to the AegisForge directory
-cd /path/to/aegisforgee
+cd /path/to/aegisforge
 
 # Install dependencies (first time only)
 pip install -r requirements.txt
@@ -1745,7 +1745,7 @@ The difference between vulnerable code and secure code isn't magic - it's knowle
 *Last Updated: 2024*  
 *Estimated Reading Time: 90 minutes*  
 *Skill Level: Beginner to Intermediate*  
-*Total Word Count: 12,500+*
+*Total Word Count: 6,200+*
 
 *Happy hacking! Remember: With great power comes great responsibility. Use your skills ethically and legally.* 🎓🔐
 
