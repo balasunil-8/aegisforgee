@@ -1,0 +1,32 @@
+{
+  "hints": [
+    {
+      "id": 1,
+      "cost": 20,
+      "title": "Understanding the Vulnerability",
+      "content": "The public key uses e=3, which is a very small exponent. In RSA, encryption is c = m^e mod n. When the message is small and e is small, something interesting happens with the modular arithmetic. Think about what happens when m^3 is actually smaller than n..."
+    },
+    {
+      "id": 2,
+      "cost": 40,
+      "title": "The Mathematical Insight",
+      "content": "When m^3 < n, the modular reduction in c = m^3 mod n doesn't actually do anything! The result is just m^3 without any 'wrapping around' the modulus. This means c = m^3 (not modulo anything). How would you reverse this operation? You don't need to factor n or use the private key - just undo the cubing operation directly."
+    },
+    {
+      "id": 3,
+      "cost": 60,
+      "title": "Implementation Approach",
+      "content": "To solve this: (1) Extract the ciphertext from the encrypted_flag.txt file (it's in hexadecimal), (2) Convert it to an integer, (3) Compute the cube root of that integer (use Python's gmpy2.iroot(c, 3) or implement binary search), (4) Convert the result back to bytes/string to get the flag. The library gmpy2 provides gmpy2.iroot(c, 3) which returns (root, is_exact). You want the root value."
+    },
+    {
+      "id": 4,
+      "cost": 80,
+      "title": "Code Template",
+      "content": "Here's a starter template:\n\nimport gmpy2\n\n# Read ciphertext from file and convert hex to int\nwith open('encrypted_flag.txt') as f:\n    hex_data = f.read().split('Encrypted Data (hexadecimal):')[1].split('---')[1].strip()\nc = int(hex_data, 16)\n\n# Compute cube root\nm, exact = gmpy2.iroot(c, 3)\n\n# Convert to bytes and decode\nflag = m.to_bytes((m.bit_length() + 7) // 8, 'big').decode()\nprint(flag)"
+    }
+  ],
+  "hint_ordering": "progressive",
+  "total_hints": 4,
+  "max_cost": 80,
+  "hint_strategy": "Use hints progressively if stuck. Each hint reveals more about the solution, but try to solve it yourself first for maximum learning!"
+}

@@ -1,0 +1,66 @@
+INTERCEPTED COMMUNICATION - CLASSIFIED
+=====================================
+
+DATE: 2024-01-15
+TIME: 14:32:17 UTC
+SOURCE: Corporate Authentication Portal (10.0.0.42)
+DESTINATION: Authentication Server (10.0.0.100)
+PROTOCOL: HTTPS (TLS 1.3)
+
+INCIDENT REPORT:
+---------------
+
+During a penetration testing engagement, our team discovered that the
+target organization's authentication system uses RSA encryption to protect
+login credentials in transit. However, a critical misconfiguration was
+identified in their cryptographic implementation.
+
+TECHNICAL ANALYSIS:
+------------------
+
+The system developers opted to use RSA with a public exponent of e=3,
+citing "performance optimization" as the rationale. This decision was
+made to reduce computational overhead during the encryption process.
+
+While it's true that smaller exponents can improve encryption speed,
+this optimization comes at a severe security cost when not implemented
+carefully.
+
+VULNERABILITY ASSESSMENT:
+------------------------
+
+RSA with e=3 is vulnerable to cube root attacks when the plaintext
+message satisfies certain conditions. Specifically, if the message m
+is small enough that m^3 < n (where n is the RSA modulus), then the
+encryption does not benefit from the modular reduction that provides
+RSA's security.
+
+In such cases:
+  c = m^3 mod n = m^3 (no wrapping)
+
+An attacker can simply compute the cube root of c to recover m, without
+needing to factor the modulus or break RSA's mathematical hardness.
+
+YOUR MISSION:
+------------
+
+Analyze the provided public key and encrypted message. Determine if the
+implementation is vulnerable and, if so, exploit the weakness to recover
+the plaintext flag.
+
+FILES PROVIDED:
+--------------
+1. public_key.pem - RSA public key
+2. encrypted_flag.txt - Intercepted encrypted message
+
+SECURITY IMPLICATIONS:
+---------------------
+
+This vulnerability demonstrates why cryptographic best practices must
+be followed rigorously. The standard recommendation is to use e=65537
+(0x10001), which provides a good balance between security and performance.
+
+Good luck!
+
+---
+AegisForge Red Team

@@ -1,0 +1,17 @@
+======================================================================
+ INTERCEPTED ENCRYPTED MESSAGE
+======================================================================
+
+During routine network monitoring, we intercepted this encrypted
+message from what appears to be a secure authentication system.
+The encryption uses RSA, but something seems off about the
+implementation...
+
+Encrypted Data (hexadecimal):
+----------------------------------------------------------------------
+5c56396b27d5815a7242522f2b39e4480822ad489226c88708a18386cb5d3d74aca5db1e405e54b2c038dd7f692c1445231e5805adc9e93f725fa7086bc7b2a24f24b41a07652da289f4bc5939e152ad540a4f71e940aca1f02da16016e9401926911469811d5438758ad3b43a48c0b5b29e74af235f1ca53a865
+----------------------------------------------------------------------
+
+Your task: Decrypt this message and recover the flag.
+The public key has been provided separately.
+

@@ -1,0 +1,103 @@
+{
+  "hints": [
+    {
+      "id": 1,
+      "cost": 15,
+      "level": "beginner",
+      "title": "Encoding Format",
+      "content": "The hidden data is stored in binary format and encoded as ASCII text. The flag follows the standard HQX{...} format. The data is hidden in the Least Significant Bit (LSB) of each pixel's color channels.",
+      "keywords": ["binary", "ASCII", "LSB", "encoding"]
+    },
+    {
+      "id": 2,
+      "cost": 30,
+      "level": "intermediate",
+      "title": "Extraction Tools",
+      "content": "You can use 'zsteg' (Ruby tool) for automated detection: 'zsteg mystery_image.png'. Alternatively, write a Python script using PIL/Pillow to extract the LSB from each RGB channel in order. The data is stored sequentially across pixels in row-major order (left-to-right, top-to-bottom).",
+      "keywords": ["zsteg", "Python", "PIL", "Pillow", "RGB", "extraction"]
+    },
+    {
+      "id": 3,
+      "cost": 50,
+      "level": "advanced",
+      "title": "Complete Extraction Method",
+      "content": "Extract the LSB (rightmost bit) from each color channel in this order: R→G→B, processing pixels from left-to-right, top-to-bottom. Group the extracted bits into 8-bit bytes and convert to ASCII characters. The flag starts immediately at the beginning of the extracted data. An EOF marker (1111111111111110) signals the end of the hidden message. Python code: for each pixel (r,g,b): extract (r&1, g&1, b&1), combine bits, convert to chr(int(byte,2)).",
+      "keywords": ["LSB extraction", "bit order", "EOF marker", "algorithm", "implementation"]
+    }
+  ],
+  "progressive_hints": {
+    "description": "Hints unlock progressively to guide without spoiling the challenge",
+    "hint_strategy": "Start with concept understanding, move to tools, end with implementation details"
+  },
+  "hint_usage_guide": {
+    "when_to_use_hint_1": "If you don't understand what LSB steganography is or what to look for",
+    "when_to_use_hint_2": "If you know about LSB but don't know which tools or approach to use",
+    "when_to_use_hint_3": "If you're implementing extraction but getting incorrect results or need algorithm details"
+  },
+  "alternative_approaches": [
+    {
+      "method": "zsteg",
+      "difficulty": "easy",
+      "time": "2 minutes",
+      "command": "zsteg mystery_image.png",
+      "hint_level": "Uses hint 2 knowledge"
+    },
+    {
+      "method": "Python PIL",
+      "difficulty": "medium",
+      "time": "10 minutes",
+      "hint_level": "Uses hint 2 and 3 knowledge"
+    },
+    {
+      "method": "StegSolve",
+      "difficulty": "easy",
+      "time": "5 minutes",
+      "hint_level": "Uses hint 2 knowledge"
+    },
+    {
+      "method": "Online tools",
+      "difficulty": "easy",
+      "time": "3 minutes",
+      "hint_level": "Uses hint 1 and 2 knowledge"
+    }
+  ],
+  "wrong_paths": [
+    {
+      "approach": "Checking metadata with exiftool",
+      "why_wrong": "The flag is not in metadata, it's in the pixel data itself",
+      "redirect": "Use hint 1 to understand LSB steganography"
+    },
+    {
+      "approach": "Looking for appended data with binwalk",
+      "why_wrong": "No files are appended after EOF, the data is embedded in pixels",
+      "redirect": "Use hint 2 to learn about proper extraction tools"
+    },
+    {
+      "approach": "Using steghide on PNG",
+      "why_wrong": "steghide doesn't support PNG format (only JPEG and BMP)",
+      "redirect": "Use hint 2 to find PNG-compatible tools like zsteg"
+    },
+    {
+      "approach": "Extracting MSB instead of LSB",
+      "why_wrong": "The data is in the Least Significant Bit (LSB), not Most Significant Bit (MSB)",
+      "redirect": "Use hint 3 for correct bit extraction method"
+    }
+  ],
+  "learning_checkpoints": [
+    {
+      "checkpoint": "Understanding LSB concept",
+      "validation": "Can explain why changing LSB doesn't visibly affect the image",
+      "unlocks": "Hint 1 becomes fully understood"
+    },
+    {
+      "checkpoint": "Using automated tools",
+      "validation": "Successfully runs zsteg and interprets output",
+      "unlocks": "Can solve challenge in 2 minutes"
+    },
+    {
+      "checkpoint": "Writing custom extractor",
+      "validation": "Understands bit manipulation and byte conversion",
+      "unlocks": "Can create custom steganography tools"
+    }
+  ]
+}

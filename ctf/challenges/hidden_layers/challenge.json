@@ -1,0 +1,46 @@
+{
+  "id": "hidden_layers",
+  "name": "HIDDEN_LAYERS",
+  "category": "Steganography",
+  "difficulty": "Intermediate",
+  "points": 150,
+  "flag": "HQX{h1dd3n_1n_pl41n_s1ght_st3g0}",
+  "description": "An intercepted image contains hidden data using LSB steganography. Extract the flag from the image file.",
+  "author": "AegisForge Security Team",
+  "tags": ["steganography", "LSB", "image-analysis", "forensics", "binary"],
+  "files": [
+    "artifacts/mystery_image.png",
+    "artifacts/instructions.txt",
+    "artifacts/stego_tool_guide.md"
+  ],
+  "hints": [
+    {
+      "id": 1,
+      "cost": 15,
+      "content": "The flag is encoded in binary and hidden in the LSB (Least Significant Bit) of each pixel's RGB values."
+    },
+    {
+      "id": 2,
+      "cost": 30,
+      "content": "Try using tools like 'zsteg' or write a Python script with PIL to extract the LSB from each color channel."
+    },
+    {
+      "id": 3,
+      "cost": 50,
+      "content": "Extract bits from RGB channels in order, group them into bytes, and decode as ASCII. The flag starts at the beginning of the LSB data."
+    }
+  ],
+  "learning_objectives": [
+    "Understand LSB steganography techniques",
+    "Learn to use steganography analysis tools",
+    "Practice binary data manipulation",
+    "Develop digital forensics skills",
+    "Write custom extraction scripts"
+  ],
+  "estimated_time": "30-45 minutes",
+  "prerequisites": [
+    "Basic understanding of binary/hexadecimal",
+    "Familiarity with image file formats",
+    "Python programming (optional)"
+  ]
+}

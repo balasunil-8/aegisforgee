@@ -1,0 +1,51 @@
+{
+  "id": "smalle",
+  "name": "SMALLE - Small Exponent RSA Attack",
+  "category": "Cryptography",
+  "difficulty": "Intermediate",
+  "points": 200,
+  "author": "AegisForge Security Team",
+  "version": "1.0.0",
+  "description": "Exploit a critical vulnerability in an RSA implementation that uses a small public exponent (e=3). Intercept encrypted credentials and recover the flag by performing a cube root attack.",
+  "learning_objectives": [
+    "Understanding RSA cryptography fundamentals",
+    "Recognizing small exponent vulnerabilities",
+    "Performing cube root attacks on RSA",
+    "Understanding the importance of proper parameter selection"
+  ],
+  "tags": [
+    "RSA",
+    "cryptography",
+    "small-exponent",
+    "cube-root-attack",
+    "public-key",
+    "modular-arithmetic"
+  ],
+  "prerequisites": [
+    "Basic understanding of RSA",
+    "Python programming",
+    "Modular arithmetic concepts"
+  ],
+  "estimated_time": "30-45 minutes",
+  "flag_format": "HQX{sm4ll_exp0n3nt_w34kness_XXXXX}",
+  "artifacts": [
+    "public_key.pem",
+    "encrypted_flag.txt",
+    "challenge_description.txt"
+  ],
+  "hints": {
+    "available": true,
+    "file": "solution/hints.json"
+  },
+  "solution": {
+    "available": true,
+    "file": "solution/SOLUTION.md"
+  },
+  "references": [
+    "https://en.wikipedia.org/wiki/RSA_(cryptosystem)",
+    "https://crypto.stackexchange.com/questions/3110/impacts-of-not-using-rsa-exponent-of-65537",
+    "https://www.di-mgt.com.au/rsa_alg.html"
+  ],
+  "created_date": "2024-01-15",
+  "updated_date": "2024-01-15"
+}
