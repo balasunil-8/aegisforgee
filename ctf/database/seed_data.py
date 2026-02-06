@@ -282,7 +282,11 @@ def seed_sample_users(session):
 
 def seed_sample_progress(session):
     """
-    Seed some sample progress data for demonstration.
+    Seed some sample progress data for demonstration purposes only.
+    
+    WARNING: This function creates demo data with timestamps that will be
+    different on each run. Only use for initial testing/demo environments.
+    Do not use in production.
     
     Args:
         session: SQLAlchemy session
@@ -396,7 +400,8 @@ def main():
         # Seed sample users
         seed_sample_users(session)
         
-        # Seed sample progress (optional)
+        # Seed sample progress (DEMO ONLY - comment out for production)
+        # This creates test data with timestamps that change on each run
         seed_sample_progress(session)
         
         print("\n" + "=" * 70)
