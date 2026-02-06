@@ -1,0 +1,35 @@
+CHALLENGE INSTRUCTIONS
+======================
+
+OBJECTIVE:
+Decode the intercepted message from Area 64 and find the hidden flag.
+
+BACKGROUND:
+You've intercepted a message from a mysterious facility called "Area 64".
+The message contains an encoded access key that you need to decode.
+
+KEY OBSERVATIONS:
+1. The facility is called "Area 64" - this is your biggest clue!
+2. The message mentions "encoding" not "encryption" - there's a difference
+3. The sender says the method is "simple by design"
+4. No complex encryption keys are mentioned
+
+YOUR TASK:
+1. Examine the encoded_message.txt file
+2. Identify the encoding method used (hint: look at the challenge name!)
+3. Decode the encoded string
+4. Submit the flag in the format HQX{...}
+
+LEARNING GOALS:
+- Understand the difference between encoding and encryption
+- Learn about Base64 encoding
+- Practice using decoding tools
+
+TOOLS YOU CAN USE:
+- Command line: base64, echo, cat
+- Python: base64 module
+- Online tools: base64decode.org, etc.
+
+Remember: Think about what "64" might mean in the context of encoding!
+
+Good luck!
