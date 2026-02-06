@@ -1,0 +1,262 @@
+{
+  "scenarios": [
+    {
+      "id": "banking_security",
+      "display_name": "🏦 Online Banking Security Lab",
+      "description": "Explore authentication, authorization, and transaction security in a banking context",
+      "difficulty": "intermediate",
+      "estimated_time_minutes": 45,
+      "vulnerabilities_covered": [
+        "SQL Injection",
+        "IDOR (Broken Object Level Authorization)",
+        "Mass Assignment",
+        "Broken Authentication"
+      ],
+      "red_team_flow": [
+        {
+          "step": 1,
+          "action": "Login Bypass via SQL Injection",
+          "endpoint": "POST /api/auth/login",
+          "method": "POST",
+          "payload_hint": "Try username with SQL syntax",
+          "learning_objective": "Understand SQL injection in authentication"
+        },
+        {
+          "step": 2,
+          "action": "Access Other User's Data (IDOR)",
+          "endpoint": "GET /api/access/idor/{user_id}",
+          "method": "GET",
+          "payload_hint": "Change user_id parameter",
+          "learning_objective": "Discover broken access control"
+        },
+        {
+          "step": 3,
+          "action": "Escalate Privileges via Mass Assignment",
+          "endpoint": "PUT /api/access/privilege-escalation",
+          "method": "PUT",
+          "payload_hint": "Add role or admin fields to request",
+          "learning_objective": "Exploit mass assignment vulnerability"
+        }
+      ],
+      "blue_team_comparison": [
+        {
+          "vulnerability": "SQL Injection",
+          "vulnerable_endpoint": "/api/auth/login (pentestlab)",
+          "secure_endpoint": "/api/auth/login (secure_vulnshop)",
+          "mitigation": "Parameterized queries, input validation"
+        },
+        {
+          "vulnerability": "IDOR",
+          "vulnerable_endpoint": "/api/access/idor/<id>",
+          "secure_endpoint": "/api/users/<id>",
+          "mitigation": "Ownership verification, require_owner_or_admin decorator"
+        }
+      ],
+      "success_criteria": [
+        "Successfully bypass authentication",
+        "Access data belonging to different user",
+        "Escalate privileges to admin role"
+      ]
+    },
+    {
+      "id": "ecommerce_security",
+      "display_name": "🛒 E-Commerce Platform Security",
+      "description": "Test order manipulation, business logic, and resource consumption",
+      "difficulty": "intermediate",
+      "estimated_time_minutes": 40,
+      "vulnerabilities_covered": [
+        "Business Logic Flaws",
+        "Unrestricted Resource Consumption",
+        "Broken Function Authorization"
+      ],
+      "red_team_flow": [
+        {
+          "step": 1,
+          "action": "Bypass Payment via Status Manipulation",
+          "endpoint": "POST /api/business/race-condition",
+          "method": "POST",
+          "payload_hint": "Send concurrent requests",
+          "learning_objective": "Exploit race conditions"
+        },
+        {
+          "step": 2,
+          "action": "Resource Exhaustion via Unlimited Pagination",
+          "endpoint": "GET /api/products?limit=999999",
+          "method": "GET",
+          "payload_hint": "Set very large limit parameter",
+          "learning_objective": "Test resource consumption controls"
+        },
+        {
+          "step": 3,
+          "action": "Access Admin Functions Without Authorization",
+          "endpoint": "GET /api/admin/debug",
+          "method": "GET",
+          "payload_hint": "Try accessing without admin token",
+          "learning_objective": "Test function-level access control"
+        }
+      ],
+      "blue_team_comparison": [
+        {
+          "vulnerability": "Business Logic",
+          "vulnerable_endpoint": "/api/business/race-condition",
+          "secure_endpoint": "/api/orders/<id>/confirm",
+          "mitigation": "State machine enforcement, idempotency keys"
+        },
+        {
+          "vulnerability": "Resource Consumption",
+          "vulnerable_endpoint": "/api/products (no limits)",
+          "secure_endpoint": "/api/products (with limits)",
+          "mitigation": "Enforce max limit=100, min=1"
+        }
+      ]
+    },
+    {
+      "id": "injection_attacks",
+      "display_name": "💉 Injection Attack Laboratory",
+      "description": "Master SQL, command, and XXE injection techniques",
+      "difficulty": "beginner",
+      "estimated_time_minutes": 60,
+      "vulnerabilities_covered": [
+        "SQL Injection (Boolean, Time-based, UNION)",
+        "OS Command Injection",
+        "XML External Entity (XXE)"
+      ],
+      "red_team_flow": [
+        {
+          "step": 1,
+          "action": "Boolean-based SQL Injection",
+          "endpoint": "GET /api/injection/sqli/boolean?search={payload}",
+          "method": "GET",
+          "payload_hint": "' OR '1'='1",
+          "learning_objective": "Basic SQL injection syntax"
+        },
+        {
+          "step": 2,
+          "action": "Time-based Blind SQL Injection",
+          "endpoint": "GET /api/injection/sqli/time-based?id={payload}",
+          "method": "GET",
+          "payload_hint": "' AND SLEEP(5)--",
+          "learning_objective": "Detect vulnerabilities via timing"
+        },
+        {
+          "step": 3,
+          "action": "UNION-based SQL Injection",
+          "endpoint": "GET /api/injection/sqli/union?search={payload}",
+          "method": "GET",
+          "payload_hint": "' UNION SELECT username,password FROM users--",
+          "learning_objective": "Extract data from other tables"
+        },
+        {
+          "step": 4,
+          "action": "OS Command Injection",
+          "endpoint": "POST /api/injection/command",
+          "method": "POST",
+          "payload_hint": "ping; ls -la",
+          "learning_objective": "Execute system commands"
+        },
+        {
+          "step": 5,
+          "action": "XXE (XML External Entity)",
+          "endpoint": "POST /api/injection/xml-xxe",
+          "method": "POST",
+          "payload_hint": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
+          "learning_objective": "Read local files via XXE"
+        }
+      ]
+    },
+    {
+      "id": "xss_playground",
+      "display_name": "🎯 Cross-Site Scripting (XSS) Playground",
+      "description": "Practice reflected, stored, and DOM-based XSS attacks",
+      "difficulty": "beginner",
+      "estimated_time_minutes": 30,
+      "vulnerabilities_covered": [
+        "Reflected XSS",
+        "Stored XSS",
+        "DOM-based XSS"
+      ],
+      "red_team_flow": [
+        {
+          "step": 1,
+          "action": "Reflected XSS in URL Parameter",
+          "endpoint": "GET /api/xss/reflected?message={payload}",
+          "method": "GET",
+          "payload_hint": "<script>alert('XSS')</script>",
+          "learning_objective": "Inject JavaScript via URL"
+        },
+        {
+          "step": 2,
+          "action": "Stored XSS in Comments",
+          "endpoint": "POST /api/xss/stored",
+          "method": "POST",
+          "payload_hint": "<img src=x onerror=alert('Stored XSS')>",
+          "learning_objective": "Persistent XSS attacks"
+        },
+        {
+          "step": 3,
+          "action": "DOM-based XSS",
+          "endpoint": "GET /api/xss/dom",
+          "method": "GET",
+          "payload_hint": "javascript:alert(document.cookie)",
+          "learning_objective": "Client-side DOM manipulation"
+        }
+      ]
+    },
+    {
+      "id": "ssrf_exploitation",
+      "display_name": "🌐 Server-Side Request Forgery Lab",
+      "description": "Test SSRF to access internal services and cloud metadata",
+      "difficulty": "advanced",
+      "estimated_time_minutes": 35,
+      "vulnerabilities_covered": [
+        "SSRF",
+        "Internal Network Access",
+        "Cloud Metadata Exploitation"
+      ],
+      "red_team_flow": [
+        {
+          "step": 1,
+          "action": "Access Internal Service",
+          "endpoint": "POST /api/ssrf/fetch",
+          "method": "POST",
+          "payload_hint": "http://127.0.0.1:5000/api/admin/debug",
+          "learning_objective": "Bypass firewall via SSRF"
+        },
+        {
+          "step": 2,
+          "action": "Cloud Metadata Access (AWS)",
+          "endpoint": "POST /api/ssrf/fetch",
+          "method": "POST",
+          "payload_hint": "http://169.254.169.254/latest/meta-data/",
+          "learning_objective": "Access cloud instance metadata"
+        },
+        {
+          "step": 3,
+          "action": "Port Scanning via SSRF",
+          "endpoint": "POST /api/ssrf/fetch",
+          "method": "POST",
+          "payload_hint": "http://internal-server:8080",
+          "learning_objective": "Map internal network"
+        }
+      ],
+      "blue_team_comparison": [
+        {
+          "vulnerability": "SSRF",
+          "vulnerable_endpoint": "/api/ssrf/fetch",
+          "secure_endpoint": "/api/utils/fetch-url",
+          "mitigation": "IP allowlist, block RFC1918, block 169.254.169.254"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "total_scenarios": 5,
+    "total_vulnerabilities": 15,
+    "difficulty_breakdown": {
+      "beginner": 2,
+      "intermediate": 2,
+      "advanced": 1
+    },
+    "estimated_total_time_minutes": 210
+  }
+}
