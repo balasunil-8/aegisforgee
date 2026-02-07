@@ -99,11 +99,13 @@ class SecureBankProductionConfig(SecureBankConfig):
     
     DEBUG = False
     
-    # SECURITY: These MUST be set via environment variables in production
-    SECRET_KEY = get_env('SECUREBANK_SECRET_KEY', required=True)
-    
-    # Strict CORS
-    CORS_ORIGINS = get_env('SECUREBANK_CORS_ORIGINS', required=True).split(',')
+    def __init__(self):
+        """Initialize production config with required environment variables"""
+        super().__init__()
+        # SECURITY: These MUST be set via environment variables in production
+        self.SECRET_KEY = get_env('SECUREBANK_SECRET_KEY', required=True)
+        # Strict CORS
+        self.CORS_ORIGINS = get_env('SECUREBANK_CORS_ORIGINS', required=True).split(',')
 
 # ============================================================================
 # CONFIGURATION SELECTION

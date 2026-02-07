@@ -115,17 +115,19 @@ class ProductionConfig(BackendConfig):
     DEBUG = False
     ENV = 'production'
     
-    # SECURITY: These MUST be set via environment variables in production
-    SECRET_KEY = get_env('FLASK_SECRET_KEY', required=True)
-    DATABASE_URL = get_env('DATABASE_URL', required=True)
-    
     # Secure cookies
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Strict'
     
-    # Strict CORS
-    CORS_ORIGINS = get_env('CORS_ORIGINS', required=True).split(',')
+    def __init__(self):
+        """Initialize production config with required environment variables"""
+        super().__init__()
+        # SECURITY: These MUST be set via environment variables in production
+        self.SECRET_KEY = get_env('FLASK_SECRET_KEY', required=True)
+        self.DATABASE_URL = get_env('DATABASE_URL', required=True)
+        # Strict CORS
+        self.CORS_ORIGINS = get_env('CORS_ORIGINS', required=True).split(',')
 
 # ============================================================================
 # CONFIGURATION SELECTION
