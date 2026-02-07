@@ -1,0 +1,32 @@
+{
+  "hints": [
+    {
+      "id": 1,
+      "cost": 10,
+      "level": "gentle",
+      "title": "Look at the Challenge Name",
+      "content": "The challenge is called 'AREA64'. This is a play on the famous 'Area 51' facility. What does the number '64' make you think of in the context of encoding? Think about common encoding methods that have numbers in their names.",
+      "keywords": ["area64", "name", "64", "encoding"]
+    },
+    {
+      "id": 2,
+      "cost": 20,
+      "level": "moderate",
+      "title": "It's Base64 Encoding",
+      "content": "The encoded string uses Base64 encoding! Base64 is a common way to represent binary data as text using 64 different characters (A-Z, a-z, 0-9, +, /). You can decode it using command-line tools like 'base64 -d', Python's base64 module, or online Base64 decoders. Remember: encoding is NOT encryption - anyone can decode it!",
+      "keywords": ["base64", "decode", "encoding", "base64 -d"]
+    },
+    {
+      "id": 3,
+      "cost": 30,
+      "level": "specific",
+      "title": "Exact Decoding Command",
+      "content": "Here's exactly how to decode it:\n\nCommand Line:\n  echo 'SFFYe2I0czM2NF8xc19uMHRfZW5jcnlwdGkwbl82NGMwZDN9' | base64 -d\n\nPython:\n  import base64\n  base64.b64decode('SFFYe2I0czM2NF8xc19uMHRfZW5jcnlwdGkwbl82NGMwZDN9').decode()\n\nOnline:\n  Visit base64decode.org and paste the encoded string.\n\nThe decoded message will be your flag in the format HQX{...}",
+      "keywords": ["command", "decode", "solution", "base64 -d", "python"]
+    }
+  ],
+  "hint_strategy": "progressive",
+  "hint_description": "These hints provide progressively more specific help. Start with hint 1 to understand the concept, use hint 2 to learn the method, and only use hint 3 if you need the exact solution.",
+  "total_hint_cost": 60,
+  "recommendation": "Try to solve it without hints first! The challenge name itself is a big clue. If you're stuck, use hints in order - don't jump straight to hint 3."
+}
