@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - SecureBank | Red Team</title>
+    <link rel="stylesheet" href="css/banking.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🏦</div>
+            <h2 class="sidebar-title">SecureBank</h2>
+            <span class="version-badge-small">🔴 RED</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.html">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="accounts.html">
+                    <span class="menu-icon">💳</span>
+                    <span class="menu-text">Accounts</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transfer.html">
+                    <span class="menu-icon">💸</span>
+                    <span class="menu-text">Transfer</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transactions.html">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Transactions</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="profile.html">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Profile</span>
+                </a>
+            </li>
+            <li class="menu-item active">
+                <a href="settings.html">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-danger btn-block" onclick="logout()">
+                <span>🚪</span> Logout
+            </button>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="../blue/settings.html" style="color: var(--success-green); font-size: 0.85rem;">
+                    🔵 Switch to Blue Team
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="btn btn-icon mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title">Settings</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="user-info">
+                    <span class="user-greeting" id="user-greeting">Loading...</span>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Vulnerability Warning -->
+        <div class="alert alert-warning" style="margin: 20px;">
+            <strong>⚠️ CSRF Vulnerability Demonstration</strong><br>
+            This settings form has NO CSRF token protection. An attacker could create a malicious webpage that 
+            submits this form without the user's knowledge, changing their settings.
+            <br><br>
+            <strong>Attack Vector:</strong> A malicious site could use JavaScript to auto-submit a form to this endpoint,
+            exploiting the user's authenticated session to change settings without their consent.
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <div class="settings-container">
+                <!-- Settings Form -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <h2>Account Settings</h2>
+                        <p>Manage your account preferences and security</p>
+                    </div>
+
+                    <!-- VULNERABILITY: No CSRF Token -->
+                    <form id="settings-form" method="POST">
+                        <!-- Notification Settings -->
+                        <div class="settings-section">
+                            <h3>Notification Preferences</h3>
+                            <p class="settings-description">Choose how you want to receive notifications</p>
+                            
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="email-notifications">
+                                        <span class="settings-icon">📧</span>
+                                        Email Notifications
+                                    </label>
+                                    <p class="settings-help">Receive account updates via email</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="email-notifications" name="emailNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="sms-notifications">
+                                        <span class="settings-icon">📱</span>
+                                        SMS Notifications
+                                    </label>
+                                    <p class="settings-help">Receive text messages for important updates</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="sms-notifications" name="smsNotifications">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="push-notifications">
+                                        <span class="settings-icon">🔔</span>
+                                        Push Notifications
+                                    </label>
+                                    <p class="settings-help">Receive browser push notifications</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="push-notifications" name="pushNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Alert Settings -->
+                        <div class="settings-section">
+                            <h3>Transaction Alerts</h3>
+                            <p class="settings-description">Get notified about account activity</p>
+                            
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="large-transactions">
+                                        <span class="settings-icon">💰</span>
+                                        Large Transactions
+                                    </label>
+                                    <p class="settings-help">Alert for transactions over $1,000</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="large-transactions" name="largeTransactionAlerts" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="login-alerts">
+                                        <span class="settings-icon">🔐</span>
+                                        Login Alerts
+                                    </label>
+                                    <p class="settings-help">Alert for new login from unrecognized device</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="login-alerts" name="loginAlerts" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="failed-login-alerts">
+                                        <span class="settings-icon">⚠️</span>
+                                        Failed Login Attempts
+                                    </label>
+                                    <p class="settings-help">Alert for failed login attempts</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="failed-login-alerts" name="failedLoginAlerts">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Appearance Settings -->
+                        <div class="settings-section">
+                            <h3>Appearance</h3>
+                            <p class="settings-description">Customize your interface</p>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="theme-select">
+                                    <span class="settings-icon">🎨</span>
+                                    Theme
+                                </label>
+                                <select id="theme-select" name="theme" class="form-input">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                    <option value="auto">Auto (System)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="language-select">
+                                    <span class="settings-icon">🌐</span>
+                                    Language
+                                </label>
+                                <select id="language-select" name="language" class="form-input">
+                                    <option value="en">English</option>
+                                    <option value="es">Español</option>
+                                    <option value="fr">Français</option>
+                                    <option value="de">Deutsch</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="currency-display">
+                                    <span class="settings-icon">💵</span>
+                                    Currency Display
+                                </label>
+                                <select id="currency-display" name="currencyDisplay" class="form-input">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="settings-section">
+                            <h3>Privacy & Security</h3>
+                            <p class="settings-description">Control your privacy settings</p>
+                            
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="two-factor">
+                                        <span class="settings-icon">🔒</span>
+                                        Two-Factor Authentication
+                                    </label>
+                                    <p class="settings-help">Add an extra layer of security</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="two-factor" name="twoFactorEnabled">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <label class="settings-label" for="activity-log">
+                                        <span class="settings-icon">📊</span>
+                                        Activity Logging
+                                    </label>
+                                    <p class="settings-help">Keep detailed logs of account activity</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="activity-log" name="activityLogging" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- CSRF Demonstration -->
+                        <div class="alert alert-info" style="margin: 20px 0;">
+                            <strong>🧪 CSRF Attack Demonstration:</strong><br>
+                            This form has no CSRF token. To demonstrate the vulnerability:
+                            <ol style="margin: 10px 0; padding-left: 20px;">
+                                <li>Save this HTML to a file and open it in another tab (simulating attacker's site)</li>
+                                <li>The malicious page will auto-submit to change your settings</li>
+                                <li>Your authenticated session cookie will be sent automatically</li>
+                            </ol>
+                            <button type="button" class="btn btn-warning btn-small" onclick="generateCSRFDemo()">
+                                Generate CSRF Attack Demo
+                            </button>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="resetSettings()">
+                                Reset to Defaults
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="alert alert-danger" style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 8px;">🔴 Security Notice - Red Team Version</h4>
+                    <p>
+                        This form is intentionally vulnerable to CSRF attacks. In the Blue Team version, 
+                        this form includes a CSRF token that must be validated on the server side.
+                    </p>
+                    <p style="margin-top: 8px;">
+                        <strong>Missing Protection:</strong>
+                    </p>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                        <li>No CSRF token in form</li>
+                        <li>No SameSite cookie attribute</li>
+                        <li>No origin validation</li>
+                        <li>No referer checking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Saving settings...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        // Ensure user is authenticated
+        requireAuth();
+
+        // Get current user
+        const currentUser = getCurrentUser();
+        document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
+
+        // Default settings
+        let userSettings = {
+            emailNotifications: true,
+            smsNotifications: false,
+            pushNotifications: true,
+            largeTransactionAlerts: true,
+            loginAlerts: true,
+            failedLoginAlerts: false,
+            theme: 'light',
+            language: 'en',
+            currencyDisplay: 'USD',
+            twoFactorEnabled: false,
+            activityLogging: true
+        };
+
+        // Load settings from localStorage if available
+        const savedSettings = localStorage.getItem('securebank_settings');
+        if (savedSettings) {
+            userSettings = JSON.parse(savedSettings);
+        }
+
+        // Initialize form with current settings
+        function initializeSettings() {
+            // Checkboxes
+            document.getElementById('email-notifications').checked = userSettings.emailNotifications;
+            document.getElementById('sms-notifications').checked = userSettings.smsNotifications;
+            document.getElementById('push-notifications').checked = userSettings.pushNotifications;
+            document.getElementById('large-transactions').checked = userSettings.largeTransactionAlerts;
+            document.getElementById('login-alerts').checked = userSettings.loginAlerts;
+            document.getElementById('failed-login-alerts').checked = userSettings.failedLoginAlerts;
+            document.getElementById('two-factor').checked = userSettings.twoFactorEnabled;
+            document.getElementById('activity-log').checked = userSettings.activityLogging;
+            
+            // Selects
+            document.getElementById('theme-select').value = userSettings.theme;
+            document.getElementById('language-select').value = userSettings.language;
+            document.getElementById('currency-display').value = userSettings.currencyDisplay;
+        }
+
+        // Handle form submission
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // VULNERABILITY: No CSRF token validation!
+            // An attacker could craft a form on their site that submits to this endpoint
+            
+            console.log('📤 Submitting settings (NO CSRF TOKEN!)');
+            
+            showLoading();
+            
+            try {
+                // Collect form data
+                const formData = new FormData(e.target);
+                const newSettings = {};
+                
+                // Get checkbox values
+                newSettings.emailNotifications = formData.get('emailNotifications') === 'on';
+                newSettings.smsNotifications = formData.get('smsNotifications') === 'on';
+                newSettings.pushNotifications = formData.get('pushNotifications') === 'on';
+                newSettings.largeTransactionAlerts = formData.get('largeTransactionAlerts') === 'on';
+                newSettings.loginAlerts = formData.get('loginAlerts') === 'on';
+                newSettings.failedLoginAlerts = formData.get('failedLoginAlerts') === 'on';
+                newSettings.twoFactorEnabled = formData.get('twoFactorEnabled') === 'on';
+                newSettings.activityLogging = formData.get('activityLogging') === 'on';
+                
+                // Get select values
+                newSettings.theme = formData.get('theme');
+                newSettings.language = formData.get('language');
+                newSettings.currencyDisplay = formData.get('currencyDisplay');
+                
+                console.log('New settings:', newSettings);
+                
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Save settings
+                userSettings = newSettings;
+                localStorage.setItem('securebank_settings', JSON.stringify(userSettings));
+                
+                hideLoading();
+                showAlert('Settings saved successfully!', 'success');
+                
+            } catch (error) {
+                hideLoading();
+                showAlert('Failed to save settings: ' + error.message, 'error');
+            }
+        });
+
+        // Reset settings
+        function resetSettings() {
+            if (!confirm('Are you sure you want to reset all settings to defaults?')) {
+                return;
+            }
+            
+            userSettings = {
+                emailNotifications: true,
+                smsNotifications: false,
+                pushNotifications: true,
+                largeTransactionAlerts: true,
+                loginAlerts: true,
+                failedLoginAlerts: false,
+                theme: 'light',
+                language: 'en',
+                currencyDisplay: 'USD',
+                twoFactorEnabled: false,
+                activityLogging: true
+            };
+            
+            localStorage.setItem('securebank_settings', JSON.stringify(userSettings));
+            initializeSettings();
+            showAlert('Settings reset to defaults', 'info');
+        }
+
+        // Generate CSRF attack demonstration
+        function generateCSRFDemo() {
+            // Create malicious HTML page that auto-submits
+            const csrfDemoHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Innocent Looking Page</title>
+</head>
+<body>
+    <h1>🎉 Congratulations! You've won a prize!</h1>
+    <p>Click the button below to claim your reward...</p>
+    
+    <!-- Hidden malicious form -->
+    <form id="csrf-form" action="http://localhost:5000/api/red/securebank/settings" method="POST" style="display: none;">
+        <input type="hidden" name="emailNotifications" value="off">
+        <input type="hidden" name="smsNotifications" value="off">
+        <input type="hidden" name="pushNotifications" value="off">
+        <input type="hidden" name="largeTransactionAlerts" value="off">
+        <input type="hidden" name="loginAlerts" value="off">
+        <input type="hidden" name="theme" value="dark">
+    </form>
+    
+    <script>
+        // Auto-submit the form when page loads
+        window.onload = function() {
+            console.log('🔴 CSRF Attack: Auto-submitting form...');
+            document.getElementById('csrf-form').submit();
+        };
+    </script>
+</body>
+</html>`;
+            
+            // Download the malicious page
+            downloadFile(csrfDemoHTML, 'csrf-attack-demo.html', 'text/html');
+            
+            showAlert('CSRF attack demo downloaded! Open it in a new tab while logged in to see the vulnerability.', 'warning');
+            
+            console.log('%c⚠️ CSRF ATTACK DEMO', 'background: #ff0000; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+            console.log('A malicious HTML file has been downloaded.');
+            console.log('Open it in a new tab (while logged in) to see how CSRF works.');
+            console.log('The page will automatically submit a form to change your settings without your knowledge!');
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearSession();
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSettings();
+        });
+
+        // Console warnings
+        console.log('%c⚠️ CSRF VULNERABILITY', 'background: #ff0000; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+        console.log('This settings form has NO CSRF token protection.');
+        console.log('An attacker could create a malicious page that submits this form.');
+        console.log('Click "Generate CSRF Attack Demo" to see how it works!');
+    </script>
+</body>
+</html>

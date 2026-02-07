@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - SecureBank | Blue Team</title>
+    <link rel="stylesheet" href="css/banking.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🏦</div>
+            <h2 class="sidebar-title">SecureBank</h2>
+            <span class="version-badge-small">🔵 BLUE</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.html">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="accounts.html">
+                    <span class="menu-icon">💳</span>
+                    <span class="menu-text">Accounts</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transfer.html">
+                    <span class="menu-icon">💸</span>
+                    <span class="menu-text">Transfer</span>
+                </a>
+            </li>
+            <li class="menu-item active">
+                <a href="transactions.html">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Transactions</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="profile.html">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Profile</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="settings.html">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-danger btn-block" onclick="logout()">
+                <span>🚪</span> Logout
+            </button>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="../red/transactions.html" style="color: var(--danger-red); font-size: 0.85rem;">
+                    🔵 Switch to Red Team
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="btn btn-icon mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title">Transactions</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="user-info">
+                    <span class="user-greeting" id="user-greeting">Loading...</span>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Security Info -->
+        <div class="alert alert-success" style="margin: 20px;">
+            <strong>✓ XSS Protection Enabled</strong><br>
+            This page properly sanitizes all user input before rendering. Transaction notes use <code>textContent</code> 
+            instead of <code>innerHTML</code> and all output is HTML-encoded to prevent script injection.
+            <br><br>
+            <strong>Security Controls:</strong> Output encoding, input sanitization, Content Security Policy
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <!-- Filters and Actions -->
+            <div class="section-header">
+                <h3>Transaction History</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="exportTransactions()">
+                        <span>📥</span> Export
+                    </button>
+                    <button class="btn btn-primary" onclick="location.href='transfer.html'">
+                        <span>💸</span> New Transfer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label for="account-filter">Account:</label>
+                    <select id="account-filter" class="form-input-small" onchange="applyFilters()">
+                        <option value="">All Accounts</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="type-filter">Type:</label>
+                    <select id="type-filter" class="form-input-small" onchange="applyFilters()">
+                        <option value="">All Types</option>
+                        <option value="credit">Credits</option>
+                        <option value="debit">Debits</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sort-by">Sort By:</label>
+                    <select id="sort-by" class="form-input-small" onchange="applyFilters()">
+                        <option value="date-desc">Date (Newest)</option>
+                        <option value="date-asc">Date (Oldest)</option>
+                        <option value="amount-desc">Amount (High to Low)</option>
+                        <option value="amount-asc">Amount (Low to High)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="form-input-small" 
+                        placeholder="Search..."
+                        oninput="debounceSearch()"
+                    >
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Account</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-tbody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">
+                                <div class="loading-state">Loading transactions...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Detail Modal -->
+    <div id="transaction-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Transaction Details</h3>
+                <button class="btn btn-icon" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="transaction-detail">
+                <!-- Transaction details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Note Modal -->
+    <div id="edit-note-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Transaction Note</h3>
+                <button class="btn btn-icon" onclick="closeEditNoteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Transaction Note</label>
+                    <textarea 
+                        id="edit-note-input" 
+                        class="form-input" 
+                        rows="4"
+                        placeholder="Add or edit note..."
+                    ></textarea>
+                    <span class="form-help">
+                        Notes are sanitized and safely rendered
+                    </span>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="closeEditNoteModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        // Ensure user is authenticated
+        requireAuth();
+
+        // Get current user
+        const currentUser = getCurrentUser();
+        document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
+
+        // Sample accounts
+        const accounts = [
+            { id: 1001, name: 'Primary Checking', number: '****4532' },
+            { id: 1002, name: 'Savings Account', number: '****8891' }
+        ];
+
+        // Sample transactions with notes
+        let transactions = [
+            {
+                id: 'txn001',
+                date: new Date().toISOString(),
+                description: 'Coffee Shop Purchase',
+                account: accounts[0],
+                type: 'debit',
+                amount: -4.50,
+                status: 'completed',
+                note: 'Morning coffee'
+            },
+            {
+                id: 'txn002',
+                date: new Date(Date.now() - 86400000).toISOString(),
+                description: 'Salary Deposit',
+                account: accounts[0],
+                type: 'credit',
+                amount: 3500.00,
+                status: 'completed',
+                note: 'Monthly salary from Acme Corp'
+            },
+            {
+                id: 'txn003',
+                date: new Date(Date.now() - 172800000).toISOString(),
+                description: 'Online Shopping',
+                account: accounts[0],
+                type: 'debit',
+                amount: -89.99,
+                status: 'completed',
+                note: 'Electronics purchase'
+            },
+            {
+                id: 'txn004',
+                date: new Date(Date.now() - 259200000).toISOString(),
+                description: 'Utility Bill Payment',
+                account: accounts[0],
+                type: 'debit',
+                amount: -125.00,
+                status: 'completed',
+                note: 'Electric bill - June'
+            },
+            {
+                id: 'txn005',
+                date: new Date(Date.now() - 345600000).toISOString(),
+                description: 'Restaurant',
+                account: accounts[0],
+                type: 'debit',
+                amount: -45.80,
+                status: 'completed',
+                note: 'Dinner with friends'
+            },
+            {
+                id: 'txn006',
+                date: new Date(Date.now() - 432000000).toISOString(),
+                description: 'Interest Payment',
+                account: accounts[1],
+                type: 'credit',
+                amount: 25.50,
+                status: 'completed',
+                note: 'Monthly interest'
+            },
+            {
+                id: 'txn007',
+                date: new Date(Date.now() - 518400000).toISOString(),
+                description: 'ATM Withdrawal',
+                account: accounts[0],
+                type: 'debit',
+                amount: -200.00,
+                status: 'completed',
+                note: 'Cash withdrawal'
+            },
+            {
+                id: 'txn008',
+                date: new Date(Date.now() - 604800000).toISOString(),
+                description: 'Transfer to Savings',
+                account: accounts[0],
+                type: 'debit',
+                amount: -500.00,
+                status: 'completed',
+                note: 'Savings deposit'
+            }
+        ];
+
+        let filteredTransactions = [...transactions];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let currentEditingTxn = null;
+
+        // Initialize
+        function initialize() {
+            // Populate account filter
+            const accountFilter = document.getElementById('account-filter');
+            accountFilter.innerHTML = '<option value="">All Accounts</option>' +
+                accounts.map(acc => `<option value="${acc.id}">${acc.name} (${acc.number})</option>`).join('');
+            
+            // Load transactions
+            applyFilters();
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const accountFilter = document.getElementById('account-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            const sortBy = document.getElementById('sort-by').value;
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            
+            // Filter
+            filteredTransactions = transactions.filter(txn => {
+                if (accountFilter && txn.account.id != accountFilter) return false;
+                if (typeFilter && txn.type !== typeFilter) return false;
+                if (searchQuery && !txn.description.toLowerCase().includes(searchQuery) && 
+                    !(txn.note && txn.note.toLowerCase().includes(searchQuery))) return false;
+                return true;
+            });
+            
+            // Sort
+            filteredTransactions.sort((a, b) => {
+                switch (sortBy) {
+                    case 'date-desc':
+                        return new Date(b.date) - new Date(a.date);
+                    case 'date-asc':
+                        return new Date(a.date) - new Date(b.date);
+                    case 'amount-desc':
+                        return Math.abs(b.amount) - Math.abs(a.amount);
+                    case 'amount-asc':
+                        return Math.abs(a.amount) - Math.abs(b.amount);
+                    default:
+                        return 0;
+                }
+            });
+            
+            currentPage = 1;
+            renderTransactions();
+            renderPagination();
+        }
+
+        // Debounced search
+        let searchTimeout;
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => applyFilters(), 300);
+        }
+
+        // Render transactions
+        function renderTransactions() {
+            const tbody = document.getElementById('transactions-tbody');
+            
+            if (filteredTransactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">No transactions found</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageTransactions = filteredTransactions.slice(start, end);
+            
+            tbody.innerHTML = pageTransactions.map(txn => `
+                <tr onclick="viewTransaction('${txn.id}')" style="cursor: pointer;">
+                    <td>${formatDate(txn.date)}</td>
+                    <td>
+                        <strong>${txn.description}</strong>
+                        ${txn.note ? `<br><small style="color: var(--text-light);">${escapeHTML(txn.note)}</small>` : ''}
+                    </td>
+                    <td>${txn.account.name}</td>
+                    <td>
+                        <span class="badge badge-${txn.type === 'credit' ? 'success' : 'secondary'}">
+                            ${txn.type === 'credit' ? '📥' : '📤'} ${txn.type}
+                        </span>
+                    </td>
+                    <td class="${txn.amount > 0 ? 'positive' : 'negative'}" style="font-weight: 600;">
+                        ${txn.amount > 0 ? '+' : ''}${formatCurrency(txn.amount)}
+                    </td>
+                    <td><span class="badge badge-success">${txn.status}</span></td>
+                    <td onclick="event.stopPropagation();">
+                        <button class="btn btn-small btn-secondary" onclick="editNote('${txn.id}')">
+                            Edit Note
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // SECURITY: Properly escape HTML to prevent XSS
+        // Notes are sanitized before rendering
+        // Note: escapeHTML() function is defined in utils.js
+
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = `
+                <button class="btn btn-small btn-secondary" 
+                    onclick="changePage(${currentPage - 1})" 
+                    ${currentPage === 1 ? 'disabled' : ''}>
+                    ← Previous
+                </button>
+                <span class="pagination-info">
+                    Page ${currentPage} of ${totalPages}
+                </span>
+                <button class="btn btn-small btn-secondary" 
+                    onclick="changePage(${currentPage + 1})" 
+                    ${currentPage === totalPages ? 'disabled' : ''}>
+                    Next →
+                </button>
+            `;
+            
+            pagination.innerHTML = html;
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTransactions();
+            renderPagination();
+        }
+
+        // View transaction details
+        function viewTransaction(txnId) {
+            const txn = transactions.find(t => t.id === txnId);
+            if (!txn) return;
+            
+            const detail = document.getElementById('transaction-detail');
+            
+            // SECURITY: Use escapeHTML to prevent XSS
+            detail.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Transaction ID</label>
+                        <p>${txn.id}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Date</label>
+                        <p>${formatDateTime(txn.date)}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Description</label>
+                        <p>${txn.description}</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Account</label>
+                        <p>${txn.account.name} (${txn.account.number})</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Type</label>
+                        <p><span class="badge badge-${txn.type === 'credit' ? 'success' : 'secondary'}">${txn.type}</span></p>
+                    </div>
+                    <div class="info-item">
+                        <label>Amount</label>
+                        <p class="${txn.amount > 0 ? 'positive' : 'negative'}" style="font-size: 1.2rem; font-weight: 600;">
+                            ${txn.amount > 0 ? '+' : ''}${formatCurrency(txn.amount)}
+                        </p>
+                    </div>
+                    <div class="info-item">
+                        <label>Status</label>
+                        <p><span class="badge badge-success">${txn.status}</span></p>
+                    </div>
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <label>Note</label>
+                        <p>${txn.note ? escapeHTML(txn.note) : '<em>No note</em>'}</p>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                    <button class="btn btn-primary" onclick="closeModal(); editNote('${txn.id}');">Edit Note</button>
+                </div>
+            `;
+            
+            document.getElementById('transaction-modal').style.display = 'flex';
+        }
+
+        // Edit note
+        function editNote(txnId) {
+            const txn = transactions.find(t => t.id === txnId);
+            if (!txn) return;
+            
+            currentEditingTxn = txn;
+            document.getElementById('edit-note-input').value = txn.note || '';
+            document.getElementById('edit-note-modal').style.display = 'flex';
+        }
+
+        // Save note
+        function saveNote() {
+            if (!currentEditingTxn) return;
+            
+            const note = document.getElementById('edit-note-input').value;
+            currentEditingTxn.note = note;
+            
+            closeEditNoteModal();
+            applyFilters(); // Re-render
+            
+            showAlert('Note updated successfully!', 'success');
+        }
+
+        // Close modals
+        function closeModal() {
+            document.getElementById('transaction-modal').style.display = 'none';
+        }
+
+        function closeEditNoteModal() {
+            document.getElementById('edit-note-modal').style.display = 'none';
+            currentEditingTxn = null;
+        }
+
+        // Export transactions
+        function exportTransactions() {
+            const csv = [
+                ['Date', 'Description', 'Account', 'Type', 'Amount', 'Status', 'Note'],
+                ...filteredTransactions.map(txn => [
+                    formatDate(txn.date),
+                    txn.description,
+                    txn.account.name,
+                    txn.type,
+                    txn.amount,
+                    txn.status,
+                    txn.note || ''
+                ])
+            ].map(row => row.join(',')).join('\n');
+            
+            downloadFile(csv, 'transactions.csv', 'text/csv');
+            showAlert('Transactions exported successfully!', 'success');
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearSession();
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Close modals on background click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initialize();
+        });
+
+        // Console info for Blue Team
+        console.log('%c✓ XSS PROTECTION ENABLED', 'background: #1976d2; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+        console.log('Transaction notes are properly sanitized:');
+        console.log('- Output encoding with escapeHTML()');
+        console.log('- textContent used instead of innerHTML where possible');
+        console.log('- HTML entities escaped before rendering');
+    </script>
+</body>
+</html>

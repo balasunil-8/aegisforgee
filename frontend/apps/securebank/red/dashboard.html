@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SecureBank | Red Team</title>
+    <link rel="stylesheet" href="css/banking.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🏦</div>
+            <h2 class="sidebar-title">SecureBank</h2>
+            <span class="version-badge-small">🔴 RED</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item active">
+                <a href="dashboard.html">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="accounts.html">
+                    <span class="menu-icon">💳</span>
+                    <span class="menu-text">Accounts</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transfer.html">
+                    <span class="menu-icon">💸</span>
+                    <span class="menu-text">Transfer</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transactions.html">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Transactions</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="profile.html">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Profile</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="settings.html">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-danger btn-block" onclick="logout()">
+                <span>🚪</span> Logout
+            </button>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="../blue/dashboard.html" style="color: var(--success-green); font-size: 0.85rem;">
+                    🔵 Switch to Blue Team
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="btn btn-icon mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title">Dashboard</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="user-info">
+                    <span class="user-greeting" id="user-greeting">Loading...</span>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Dashboard Content -->
+        <div class="content-wrapper">
+            <!-- Total Balance Card -->
+            <div class="dashboard-summary">
+                <div class="summary-card balance-card">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-content">
+                        <p class="summary-label">Total Balance</p>
+                        <h2 class="summary-value" id="total-balance">$0.00</h2>
+                        <p class="summary-change positive">+2.5% from last month</p>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-icon">💳</div>
+                    <div class="summary-content">
+                        <p class="summary-label">Active Accounts</p>
+                        <h2 class="summary-value" id="account-count">0</h2>
+                        <p class="summary-change">Checking & Savings</p>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-icon">📈</div>
+                    <div class="summary-content">
+                        <p class="summary-label">This Month</p>
+                        <h2 class="summary-value" id="month-spending">$0.00</h2>
+                        <p class="summary-change negative">-$1,250 expenses</p>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-icon">⚡</div>
+                    <div class="summary-content">
+                        <p class="summary-label">Quick Actions</p>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <button class="btn btn-small btn-primary" onclick="location.href='transfer.html'">Transfer</button>
+                            <button class="btn btn-small btn-secondary" onclick="location.href='transactions.html'">View All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts Overview -->
+            <div class="dashboard-grid">
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>My Accounts</h3>
+                        <a href="accounts.html" class="btn btn-small btn-secondary">View All</a>
+                    </div>
+                    <div class="accounts-list" id="accounts-list">
+                        <!-- Accounts will be loaded here -->
+                        <div class="loading-state">Loading accounts...</div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="transactions.html" class="btn btn-small btn-secondary">View All</a>
+                    </div>
+                    <div class="transactions-list" id="recent-transactions">
+                        <!-- Transactions will be loaded here -->
+                        <div class="loading-state">Loading transactions...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div class="quick-actions-grid">
+                    <a href="transfer.html" class="action-card">
+                        <div class="action-icon">💸</div>
+                        <h4>Transfer Money</h4>
+                        <p>Send money to another account</p>
+                    </a>
+                    <a href="transactions.html" class="action-card">
+                        <div class="action-icon">📊</div>
+                        <h4>View Transactions</h4>
+                        <p>Check your transaction history</p>
+                    </a>
+                    <a href="profile.html" class="action-card">
+                        <div class="action-icon">👤</div>
+                        <h4>Update Profile</h4>
+                        <p>Edit your personal information</p>
+                    </a>
+                    <a href="settings.html" class="action-card">
+                        <div class="action-icon">⚙️</div>
+                        <h4>Settings</h4>
+                        <p>Manage your preferences</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        // Ensure user is authenticated
+        requireAuth();
+
+        // Get current user
+        const currentUser = getCurrentUser();
+
+        // Update greeting
+        document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
+
+        // Sample data for demonstration
+        const sampleAccounts = [
+            {
+                id: 1001,
+                name: 'Primary Checking',
+                type: 'checking',
+                number: '****4532',
+                balance: 5420.50,
+                currency: 'USD'
+            },
+            {
+                id: 1002,
+                name: 'Savings Account',
+                type: 'savings',
+                number: '****8891',
+                balance: 12350.75,
+                currency: 'USD'
+            }
+        ];
+
+        const sampleTransactions = [
+            {
+                id: 't001',
+                date: new Date().toISOString(),
+                description: 'Coffee Shop',
+                amount: -4.50,
+                type: 'debit',
+                status: 'completed'
+            },
+            {
+                id: 't002',
+                date: new Date(Date.now() - 86400000).toISOString(),
+                description: 'Salary Deposit',
+                amount: 3500.00,
+                type: 'credit',
+                status: 'completed'
+            },
+            {
+                id: 't003',
+                date: new Date(Date.now() - 172800000).toISOString(),
+                description: 'Online Shopping',
+                amount: -89.99,
+                type: 'debit',
+                status: 'completed'
+            },
+            {
+                id: 't004',
+                date: new Date(Date.now() - 259200000).toISOString(),
+                description: 'Utility Bill',
+                amount: -125.00,
+                type: 'debit',
+                status: 'completed'
+            },
+            {
+                id: 't005',
+                date: new Date(Date.now() - 345600000).toISOString(),
+                description: 'Restaurant',
+                amount: -45.80,
+                type: 'debit',
+                status: 'completed'
+            }
+        ];
+
+        // Load dashboard data
+        function loadDashboard() {
+            // Calculate total balance
+            const totalBalance = sampleAccounts.reduce((sum, acc) => sum + acc.balance, 0);
+            document.getElementById('total-balance').textContent = formatCurrency(totalBalance);
+            
+            // Update account count
+            document.getElementById('account-count').textContent = sampleAccounts.length;
+            
+            // Calculate month spending (negative transactions only)
+            const monthSpending = Math.abs(sampleTransactions
+                .filter(t => t.amount < 0)
+                .reduce((sum, t) => sum + t.amount, 0));
+            document.getElementById('month-spending').textContent = formatCurrency(monthSpending);
+            
+            // Load accounts
+            loadAccounts();
+            
+            // Load recent transactions
+            loadRecentTransactions();
+        }
+
+        // Load accounts list
+        function loadAccounts() {
+            const container = document.getElementById('accounts-list');
+            
+            if (sampleAccounts.length === 0) {
+                container.innerHTML = '<div class="empty-state">No accounts found</div>';
+                return;
+            }
+            
+            container.innerHTML = sampleAccounts.map(account => `
+                <div class="account-card" onclick="location.href='accounts.html?id=${account.id}'">
+                    <div class="account-header">
+                        <div class="account-icon">${account.type === 'checking' ? '💳' : '🏦'}</div>
+                        <div class="account-info">
+                            <h4 class="account-name">${account.name}</h4>
+                            <p class="account-number">${account.number}</p>
+                        </div>
+                    </div>
+                    <div class="account-balance">
+                        <p class="balance-label">Balance</p>
+                        <p class="balance-amount">${formatCurrency(account.balance, account.currency)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load recent transactions
+        function loadRecentTransactions() {
+            const container = document.getElementById('recent-transactions');
+            
+            if (sampleTransactions.length === 0) {
+                container.innerHTML = '<div class="empty-state">No recent transactions</div>';
+                return;
+            }
+            
+            // Show only last 5 transactions
+            const recentTxs = sampleTransactions.slice(0, 5);
+            
+            container.innerHTML = recentTxs.map(tx => `
+                <div class="transaction-item" onclick="location.href='transactions.html?id=${tx.id}'">
+                    <div class="transaction-icon ${tx.type}">${tx.type === 'credit' ? '📥' : '📤'}</div>
+                    <div class="transaction-info">
+                        <h4 class="transaction-description">${tx.description}</h4>
+                        <p class="transaction-date">${getRelativeTime(tx.date)}</p>
+                    </div>
+                    <div class="transaction-amount ${tx.amount > 0 ? 'positive' : 'negative'}">
+                        ${tx.amount > 0 ? '+' : ''}${formatCurrency(tx.amount)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearSession();
+                showAlert('Logged out successfully', 'success');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+
+        // Log for debugging
+        console.log('🏦 SecureBank Dashboard');
+        console.log('Team Mode:', getTeamMode());
+        console.log('Current User:', currentUser);
+    </script>
+</body>
+</html>
