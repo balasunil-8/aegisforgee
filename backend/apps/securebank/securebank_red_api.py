@@ -616,4 +616,7 @@ if __name__ == '__main__':
     print("🔴 SecureBank Red Team API (VULNERABLE) starting...")
     print("⚠️  WARNING: This application contains intentional vulnerabilities")
     print("🔗 Base URL: http://localhost:5000/api/red/securebank")
-    app.run(debug=True, port=5000)
+    # NOTE: debug=True is INTENTIONALLY enabled for educational purposes
+    # This is a VULNERABILITY - allows access to Python debugger
+    # NEVER use debug=True in production!
+    app.run(debug=True, port=5000)  # nosec - intentional vulnerability
