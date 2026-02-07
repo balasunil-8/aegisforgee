@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Order history on ShopVuln">
+    <title>My Orders | ShopVuln</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/orders.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <div class="search-bar">
+                    <form action="search.html" method="GET" id="searchForm">
+                        <input type="text" name="q" id="searchInput" placeholder="Search products..." autocomplete="off">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="cart.html" class="cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </a>
+                    <div class="user-menu">
+                        <button class="user-btn" id="userMenuBtn">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName">Guest</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="orders.html" class="active">My Orders</a>
+                            <a href="coupon.html">Coupons</a>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Orders Page -->
+    <main class="orders-page">
+        <div class="container">
+            <div class="page-header">
+                <h1>My Orders</h1>
+                <div class="header-actions">
+                    <input type="text" id="orderSearch" placeholder="Search orders..." class="search-input">
+                    <!-- VULNERABILITY: Order filter parameters can be manipulated -->
+                    <select id="orderFilter" onchange="filterOrders(this.value)">
+                        <option value="all">All Orders</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- VULNERABILITY: Order IDs exposed and predictable (IDOR vulnerability) -->
+            <div class="orders-list" id="ordersList">
+                
+                <!-- Order 1 -->
+                <div class="order-card" data-order-id="10234">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Order #10234</h3>
+                            <p class="order-date">Placed on December 15, 2024</p>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge status-delivered">
+                                <i class="fas fa-check-circle"></i> Delivered
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/80x80?text=Laptop" alt="Premium Laptop">
+                            <div class="item-details">
+                                <h4>Premium Laptop Pro 15</h4>
+                                <p>Quantity: 1</p>
+                            </div>
+                            <div class="item-price">$1,299.99</div>
+                        </div>
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/80x80?text=Mouse" alt="Gaming Mouse">
+                            <div class="item-details">
+                                <h4>Gaming Mouse RGB</h4>
+                                <p>Quantity: 1</p>
+                            </div>
+                            <div class="item-price">$79.99</div>
+                        </div>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <span>Total:</span>
+                            <strong>$1,379.98</strong>
+                        </div>
+                        <div class="order-actions">
+                            <!-- VULNERABILITY: Order details accessible via GET parameter -->
+                            <a href="?order_id=10234" class="btn btn-secondary btn-sm">View Details</a>
+                            <button class="btn btn-primary btn-sm" onclick="reorder(10234)">
+                                <i class="fas fa-redo"></i> Reorder
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="downloadInvoice(10234)">
+                                <i class="fas fa-download"></i> Invoice
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order 2 -->
+                <div class="order-card" data-order-id="10233">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Order #10233</h3>
+                            <p class="order-date">Placed on December 10, 2024</p>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge status-shipped">
+                                <i class="fas fa-shipping-fast"></i> Shipped
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/80x80?text=Headphones" alt="Wireless Headphones">
+                            <div class="item-details">
+                                <h4>Wireless Headphones Elite</h4>
+                                <p>Quantity: 2</p>
+                            </div>
+                            <div class="item-price">$699.98</div>
+                        </div>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <span>Total:</span>
+                            <strong>$699.98</strong>
+                        </div>
+                        <div class="order-actions">
+                            <a href="?order_id=10233" class="btn btn-secondary btn-sm">View Details</a>
+                            <button class="btn btn-primary btn-sm" onclick="trackOrder(10233)">
+                                <i class="fas fa-map-marker-alt"></i> Track Order
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="downloadInvoice(10233)">
+                                <i class="fas fa-download"></i> Invoice
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order 3 -->
+                <div class="order-card" data-order-id="10232">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Order #10232</h3>
+                            <p class="order-date">Placed on December 5, 2024</p>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge status-processing">
+                                <i class="fas fa-clock"></i> Processing
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/80x80?text=Tablet" alt="Tablet Pro">
+                            <div class="item-details">
+                                <h4>Tablet Pro 12.9"</h4>
+                                <p>Quantity: 1</p>
+                            </div>
+                            <div class="item-price">$1,099.99</div>
+                        </div>
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/80x80?text=Camera" alt="Digital Camera">
+                            <div class="item-details">
+                                <h4>Digital Camera 4K</h4>
+                                <p>Quantity: 1</p>
+                            </div>
+                            <div class="item-price">$1,799.99</div>
+                        </div>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <span>Total:</span>
+                            <strong>$2,899.98</strong>
+                        </div>
+                        <div class="order-actions">
+                            <a href="?order_id=10232" class="btn btn-secondary btn-sm">View Details</a>
+                            <!-- VULNERABILITY: Order cancellation without proper authorization -->
+                            <button class="btn btn-danger btn-sm" onclick="cancelOrder(10232)">
+                                <i class="fas fa-times"></i> Cancel Order
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="downloadInvoice(10232)">
+                                <i class="fas fa-download"></i> Invoice
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order 4 -->
+                <div class="order-card" data-order-id="10231">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Order #10231</h3>
+                            <p class="order-date">Placed on November 28, 2024</p>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge status-cancelled">
+                                <i class="fas fa-ban"></i> Cancelled
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        <div class="order-item">
+                            <img src="https://via.placeholder.com/80x80?text=Speaker" alt="Bluetooth Speaker">
+                            <div class="item-details">
+                                <h4>Bluetooth Speaker XL</h4>
+                                <p>Quantity: 1</p>
+                            </div>
+                            <div class="item-price">$199.99</div>
+                        </div>
+                    </div>
+
+                    <div class="order-footer">
+                        <div class="order-total">
+                            <span>Total:</span>
+                            <strong>$199.99</strong>
+                        </div>
+                        <div class="order-actions">
+                            <a href="?order_id=10231" class="btn btn-secondary btn-sm">View Details</a>
+                            <button class="btn btn-primary btn-sm" onclick="reorder(10231)">
+                                <i class="fas fa-redo"></i> Reorder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn" onclick="changePage(1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="page-btn active" onclick="changePage(1)">1</button>
+                <button class="page-btn" onclick="changePage(2)">2</button>
+                <button class="page-btn" onclick="changePage(3)">3</button>
+                <button class="page-btn" onclick="changePage(2)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Order Details Modal -->
+    <!-- VULNERABILITY: Order details loaded without proper authorization check -->
+    <div id="orderDetailsModal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3>Order Details</h3>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-details-grid">
+                    <div class="details-section">
+                        <h4>Order Information</h4>
+                        <p><strong>Order Number:</strong> <span id="modalOrderNumber"></span></p>
+                        <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+                        <p><strong>Status:</strong> <span id="modalOrderStatus"></span></p>
+                    </div>
+
+                    <div class="details-section">
+                        <h4>Shipping Address</h4>
+                        <p id="modalShippingAddress"></p>
+                    </div>
+
+                    <div class="details-section">
+                        <h4>Payment Method</h4>
+                        <p id="modalPaymentMethod"></p>
+                    </div>
+
+                    <div class="details-section">
+                        <h4>Order Summary</h4>
+                        <div id="modalOrderItems"></div>
+                        <div class="modal-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="modalSubtotal"></span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping:</span>
+                                <span id="modalShipping"></span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax:</span>
+                                <span id="modalTax"></span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <strong>Total:</strong>
+                                <strong id="modalTotal"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeOrderModal()">Close</button>
+                <button class="btn btn-primary" onclick="printOrder()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About ShopVuln</h4>
+                    <p>Your trusted online marketplace for quality products at competitive prices.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="search.html">Products</a></li>
+                        <li><a href="orders.html">Orders</a></li>
+                        <li><a href="coupon.html">Coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopVuln. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/orders.js"></script>
+</body>
+</html>
