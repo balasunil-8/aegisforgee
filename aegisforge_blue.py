@@ -41,6 +41,13 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 CORS(app)
 
+# Register OWASP vulnerability modules
+try:
+    from owasp_integration import register_owasp_modules
+    register_owasp_modules(app)
+except ImportError:
+    print("⚠️ OWASP modules not available (optional)")
+
 # ============================================================================
 # SQL INJECTION PROTECTION (3 ENDPOINTS)
 # ============================================================================
