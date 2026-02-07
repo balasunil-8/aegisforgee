@@ -19,11 +19,16 @@ def register_owasp_modules(app):
         # OWASP Web Top 10 2021
         from backend.owasp.web_2021.a04_insecure_design_red import a04_insecure_design_red
         from backend.owasp.web_2021.a04_insecure_design_blue import a04_insecure_design_blue
+        from backend.owasp.web_2021.a05_misconfiguration_red import a05_misconfiguration_red
+        from backend.owasp.web_2021.a05_misconfiguration_blue import a05_misconfiguration_blue
         
         app.register_blueprint(a04_insecure_design_red)
         app.register_blueprint(a04_insecure_design_blue)
+        app.register_blueprint(a05_misconfiguration_red)
+        app.register_blueprint(a05_misconfiguration_blue)
         
         print("✓ Registered A04: Insecure Design endpoints")
+        print("✓ Registered A05: Security Misconfiguration endpoints")
         
     except ImportError as e:
         print(f"⚠️ Could not import OWASP modules: {e}")
