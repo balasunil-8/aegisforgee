@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ShopVuln - Your one-stop shop for electronics, fashion, and more">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-{{NONCE}}'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' /api/blue/shopvuln/">
+    
+    <title>ShopVuln - Home | Premium Online Shopping</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <!-- SECURE: Input validation and output encoding applied -->
+                <div class="search-bar">
+                    <form action="search.html" method="GET" id="searchForm">
+                        <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                        <input type="text" name="q" id="searchInput" placeholder="Search products..." autocomplete="off" maxlength="100" pattern="[a-zA-Z0-9\s\-]+" required>
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                    <!-- Search suggestions sanitized before display -->
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="cart.html" class="cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </a>
+                    <div class="user-menu">
+                        <button class="user-btn" id="userMenuBtn">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName">Guest</span>
+                        </button>
+                        <!-- SECURE: Session management with secure tokens -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="orders.html">My Orders</a>
+                            <a href="coupon.html">Coupons</a>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Welcome to ShopVuln</h1>
+                <p>Discover amazing deals on electronics, fashion, and more</p>
+                <button class="btn btn-primary">Shop Now</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category Filters -->
+    <section class="category-section">
+        <div class="container">
+            <h2>Shop by Category</h2>
+            <div class="category-grid">
+                <!-- SECURE: Category parameters validated server-side -->
+                <a href="search.html?category=electronics" class="category-card">
+                    <i class="fas fa-laptop"></i>
+                    <span>Electronics</span>
+                </a>
+                <a href="search.html?category=fashion" class="category-card">
+                    <i class="fas fa-tshirt"></i>
+                    <span>Fashion</span>
+                </a>
+                <a href="search.html?category=home" class="category-card">
+                    <i class="fas fa-home"></i>
+                    <span>Home & Garden</span>
+                </a>
+                <a href="search.html?category=sports" class="category-card">
+                    <i class="fas fa-basketball-ball"></i>
+                    <span>Sports</span>
+                </a>
+                <a href="search.html?category=books" class="category-card">
+                    <i class="fas fa-book"></i>
+                    <span>Books</span>
+                </a>
+                <a href="search.html?category=toys" class="category-card">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Toys & Games</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="products-section">
+        <div class="container">
+            <h2>Featured Products</h2>
+            <!-- SECURE: Product data sanitized before rendering -->
+            <div class="product-grid" id="productGrid">
+                <!-- Products will be dynamically loaded here -->
+                <div class="product-card" data-id="1">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x300?text=Laptop" alt="Premium Laptop">
+                        <span class="badge badge-success">New</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Premium Laptop Pro 15</h3>
+                        <p class="product-description">High-performance laptop with 16GB RAM and 512GB SSD</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span>(4.5)</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="price">$1,299.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart(1)">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" data-id="2">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x300?text=Smartphone" alt="Smartphone">
+                        <span class="badge badge-warning">Sale</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">SmartPhone X Pro</h3>
+                        <p class="product-description">Latest 5G smartphone with advanced camera system</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <span>(4.0)</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="price">$899.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart(2)">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" data-id="3">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x300?text=Headphones" alt="Wireless Headphones">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Wireless Headphones Elite</h3>
+                        <p class="product-description">Noise-cancelling over-ear headphones with 30-hour battery</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span>(5.0)</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="price">$349.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart(3)">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card" data-id="4">
+                    <div class="product-image">
+                        <img src="https://via.placeholder.com/300x300?text=Smartwatch" alt="Smart Watch">
+                        <span class="badge badge-success">New</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Smart Watch Series 8</h3>
+                        <p class="product-description">Fitness tracking, heart rate monitor, GPS enabled</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span>(4.7)</span>
+                        </div>
+                        <div class="product-footer">
+                            <span class="price">$449.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart(4)">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2>Subscribe to Our Newsletter</h2>
+                <p>Get exclusive deals and updates delivered to your inbox</p>
+                <!-- SECURE: Email validation with CSRF protection -->
+                <form id="newsletterForm" class="newsletter-form">
+                    <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                    <input type="email" name="email" placeholder="Enter your email" maxlength="100" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required>
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About ShopVuln</h4>
+                    <p>Your trusted online marketplace for quality products at competitive prices.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="search.html">Products</a></li>
+                        <li><a href="orders.html">Orders</a></li>
+                        <li><a href="coupon.html">Coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopVuln. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SECURE: Scripts with nonce attributes for CSP compliance -->
+    <script nonce="{{NONCE}}" src="js/main.js"></script>
+    <script nonce="{{NONCE}}" src="js/home.js"></script>
+    <script nonce="{{NONCE}}" src="js/cart.js"></script>
+</body>
+</html>

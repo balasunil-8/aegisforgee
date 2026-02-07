@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Checkout on ShopVuln">
+    <!-- SECURE: Security headers to prevent clickjacking, MIME sniffing, and XSS -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- SECURE: Content Security Policy with nonce to prevent XSS attacks -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-{{NONCE}}' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' https: data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self';">
+    <title>Checkout | ShopVuln</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/checkout.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <nav class="checkout-steps">
+                    <div class="step active">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Cart</span>
+                    </div>
+                    <div class="step active">
+                        <i class="fas fa-truck"></i>
+                        <span>Shipping</span>
+                    </div>
+                    <div class="step">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payment</span>
+                    </div>
+                    <div class="step">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirmation</span>
+                    </div>
+                </nav>
+
+                <div class="header-actions">
+                    <a href="cart.html" class="btn-link">
+                        <i class="fas fa-arrow-left"></i> Back to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Checkout Page -->
+    <main class="checkout-page">
+        <div class="container">
+            <h1>Checkout</h1>
+
+            <div class="checkout-layout">
+                <!-- Checkout Form -->
+                <div class="checkout-form-section">
+                    <!-- SECURE: Form protected with CSRF token to prevent cross-site request forgery -->
+                    <form id="checkoutForm" onsubmit="processCheckout(event)">
+                        <!-- SECURE: CSRF token validates the form submission is from legitimate source -->
+                        <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                        
+                        <!-- Shipping Information -->
+                        <section class="form-section">
+                            <h2><i class="fas fa-truck"></i> Shipping Information</h2>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>First Name *</label>
+                                    <!-- SECURE: Input validation with pattern and maxlength -->
+                                    <input type="text" name="firstName" id="firstName" required maxlength="50" pattern="[A-Za-z\s\-']+" title="Only letters, spaces, hyphens, and apostrophes allowed">
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Name *</label>
+                                    <!-- SECURE: Input validation with pattern and maxlength -->
+                                    <input type="text" name="lastName" id="lastName" required maxlength="50" pattern="[A-Za-z\s\-']+" title="Only letters, spaces, hyphens, and apostrophes allowed">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email Address *</label>
+                                <!-- SECURE: Email validated both client-side and server-side with strict pattern -->
+                                <input type="email" name="email" id="email" required maxlength="100" pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" title="Please enter a valid email address">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <!-- SECURE: Phone number validation with pattern -->
+                                <input type="tel" name="phone" id="phone" required pattern="[0-9\-\+\(\)\s]{10,20}" maxlength="20" title="Please enter a valid phone number">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Address Line 1 *</label>
+                                <!-- SECURE: Address validation with maxlength -->
+                                <input type="text" name="address1" id="address1" required maxlength="100">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Address Line 2</label>
+                                <!-- SECURE: Optional field with maxlength -->
+                                <input type="text" name="address2" id="address2" maxlength="100">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>City *</label>
+                                    <!-- SECURE: City validation with pattern and maxlength -->
+                                    <input type="text" name="city" id="city" required maxlength="50" pattern="[A-Za-z\s\-']+" title="Only letters, spaces, and hyphens allowed">
+                                </div>
+                                <div class="form-group">
+                                    <label>State/Province *</label>
+                                    <!-- SECURE: State validation with maxlength -->
+                                    <input type="text" name="state" id="state" required maxlength="50">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>ZIP/Postal Code *</label>
+                                    <!-- SECURE: ZIP code validation with pattern -->
+                                    <input type="text" name="zipCode" id="zipCode" required pattern="[A-Za-z0-9\s\-]{3,10}" maxlength="10" title="Please enter a valid postal code">
+                                </div>
+                                <div class="form-group">
+                                    <label>Country *</label>
+                                    <select name="country" id="country" required>
+                                        <option value="">Select Country</option>
+                                        <option value="US">United States</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <option value="AU">Australia</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Shipping Method -->
+                        <section class="form-section">
+                            <h2><i class="fas fa-shipping-fast"></i> Shipping Method</h2>
+                            
+                            <!-- SECURE: Shipping cost validated server-side; client values are display only -->
+                            <div class="shipping-options">
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="standard" data-cost="0" checked>
+                                    <div class="option-details">
+                                        <span class="option-name">Standard Shipping (5-7 days)</span>
+                                        <span class="option-price">FREE</span>
+                                    </div>
+                                </label>
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="express" data-cost="15.99">
+                                    <div class="option-details">
+                                        <span class="option-name">Express Shipping (2-3 days)</span>
+                                        <span class="option-price">$15.99</span>
+                                    </div>
+                                </label>
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="overnight" data-cost="29.99">
+                                    <div class="option-details">
+                                        <span class="option-name">Overnight Shipping (1 day)</span>
+                                        <span class="option-price">$29.99</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </section>
+
+                        <!-- Payment Information -->
+                        <section class="form-section">
+                            <h2><i class="fas fa-credit-card"></i> Payment Information</h2>
+                            
+                            <div class="payment-methods-tabs">
+                                <button type="button" class="tab-btn active" onclick="selectPaymentMethod('card')">
+                                    <i class="fas fa-credit-card"></i> Credit/Debit Card
+                                </button>
+                                <button type="button" class="tab-btn" onclick="selectPaymentMethod('paypal')">
+                                    <i class="fab fa-paypal"></i> PayPal
+                                </button>
+                            </div>
+
+                            <div id="cardPayment" class="payment-tab active">
+                                <div class="form-group">
+                                    <label>Cardholder Name *</label>
+                                    <!-- SECURE: Cardholder name validation -->
+                                    <input type="text" name="cardName" id="cardName" maxlength="100" pattern="[A-Za-z\s\-']+" title="Only letters, spaces, and hyphens allowed">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Card Number *</label>
+                                    <!-- SECURE: Card data encrypted via HTTPS and tokenized server-side (PCI DSS compliance) -->
+                                    <input type="text" name="cardNumber" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" pattern="[0-9\s]{13,19}" title="Please enter a valid card number">
+                                    <div class="card-icons">
+                                        <i class="fab fa-cc-visa"></i>
+                                        <i class="fab fa-cc-mastercard"></i>
+                                        <i class="fab fa-cc-amex"></i>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Expiration Date *</label>
+                                        <!-- SECURE: Expiry date validation -->
+                                        <input type="text" name="cardExpiry" id="cardExpiry" placeholder="MM/YY" maxlength="5" pattern="(0[1-9]|1[0-2])\/[0-9]{2}" title="Format: MM/YY">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>CVV *</label>
+                                        <!-- SECURE: CVV transmitted securely via HTTPS and never stored (PCI DSS compliance) -->
+                                        <input type="text" name="cardCVV" id="cardCVV" placeholder="123" maxlength="4" pattern="[0-9]{3,4}" title="3 or 4 digit security code">
+                                        <i class="fas fa-question-circle" title="3 or 4 digit code on back of card"></i>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="saveCard" id="saveCard">
+                                        <span>Save card for future purchases</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="paypalPayment" class="payment-tab">
+                                <div class="paypal-info">
+                                    <p>You will be redirected to PayPal to complete your purchase securely.</p>
+                                    <button type="button" class="btn btn-paypal">
+                                        <i class="fab fa-paypal"></i> Continue with PayPal
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="billingAddress" id="billingAddress" checked>
+                                    <span>Billing address same as shipping</span>
+                                </label>
+                            </div>
+                        </section>
+
+                        <!-- Coupon Code -->
+                        <section class="form-section">
+                            <h2><i class="fas fa-tag"></i> Discount Code</h2>
+                            
+                            <!-- SECURE: Coupon validation performed server-side with rate limiting -->
+                            <div class="coupon-input-wrapper">
+                                <input type="text" name="couponCode" id="couponCode" placeholder="Enter coupon code" maxlength="50" pattern="[A-Z0-9\-]{3,50}" title="Coupon codes are alphanumeric">
+                                <button type="button" class="btn btn-secondary" onclick="applyCouponCheckout()">Apply</button>
+                            </div>
+                            <div id="couponStatus" class="coupon-status"></div>
+                        </section>
+
+                        <!-- Order Notes -->
+                        <section class="form-section">
+                            <h2><i class="fas fa-comment"></i> Order Notes (Optional)</h2>
+                            <div class="form-group">
+                                <!-- SECURE: Textarea with maxlength to prevent abuse -->
+                                <textarea name="orderNotes" id="orderNotes" rows="4" placeholder="Special instructions for your order..." maxlength="500"></textarea>
+                            </div>
+                        </section>
+
+                        <!-- Terms and Conditions -->
+                        <section class="form-section">
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="terms" id="terms" required>
+                                    <span>I agree to the <a href="#" target="_blank">Terms and Conditions</a> and <a href="#" target="_blank">Privacy Policy</a></span>
+                                </label>
+                            </div>
+                        </section>
+
+                        <div class="form-actions">
+                            <a href="cart.html" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Cart
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-lock"></i> Place Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Order Summary Sidebar -->
+                <div class="order-summary-sidebar">
+                    <div class="summary-card">
+                        <h3>Order Summary</h3>
+                        
+                        <div class="order-items">
+                            <div class="summary-item">
+                                <img src="https://via.placeholder.com/60x60?text=Laptop" alt="Laptop">
+                                <div class="item-info">
+                                    <h4>Premium Laptop Pro 15</h4>
+                                    <p>Qty: 1</p>
+                                </div>
+                                <span class="item-price">$1,299.99</span>
+                            </div>
+                            <div class="summary-item">
+                                <img src="https://via.placeholder.com/60x60?text=Headphones" alt="Headphones">
+                                <div class="item-info">
+                                    <h4>Wireless Headphones Elite</h4>
+                                    <p>Qty: 2</p>
+                                </div>
+                                <span class="item-price">$699.98</span>
+                            </div>
+                            <div class="summary-item">
+                                <img src="https://via.placeholder.com/60x60?text=Mouse" alt="Mouse">
+                                <div class="item-info">
+                                    <h4>Gaming Mouse RGB</h4>
+                                    <p>Qty: 1</p>
+                                </div>
+                                <span class="item-price">$79.99</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="summarySubtotal">$2,079.96</span>
+                        </div>
+                        
+                        <div class="summary-row">
+                            <span>Shipping:</span>
+                            <span id="summaryShipping">$0.00</span>
+                        </div>
+                        
+                        <div class="summary-row">
+                            <span>Tax:</span>
+                            <span id="summaryTax">$166.40</span>
+                        </div>
+
+                        <div class="summary-row discount-row" id="discountRow" style="display: none;">
+                            <span>Discount:</span>
+                            <span class="discount-amount" id="summaryDiscount">-$0.00</span>
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row total-row">
+                            <span>Total:</span>
+                            <span class="total-amount" id="summaryTotal">$2,246.36</span>
+                        </div>
+
+                        <div class="security-badges">
+                            <div class="badge-item">
+                                <i class="fas fa-lock"></i>
+                                <span>Secure Checkout</span>
+                            </div>
+                            <div class="badge-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Buyer Protection</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-card">
+                        <h4><i class="fas fa-headset"></i> Need Help?</h4>
+                        <p>Our customer support team is available 24/7</p>
+                        <a href="#" class="btn btn-outline btn-block">Contact Support</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer checkout-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 ShopVuln. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SECURE: Script tags with nonce attribute to prevent XSS attacks -->
+    <script src="js/main.js" nonce="{{NONCE}}"></script>
+    <script src="js/checkout.js" nonce="{{NONCE}}"></script>
+</body>
+</html>

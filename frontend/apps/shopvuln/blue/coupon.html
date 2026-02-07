@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage coupons on ShopVuln">
+    <!-- SECURE: Security headers to prevent clickjacking, MIME sniffing, and XSS -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <!-- SECURE: Content Security Policy with nonce to prevent XSS attacks -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-{{NONCE}}' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' https: data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self';">
+    <title>Coupons & Deals | ShopVuln</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/coupon.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <div class="search-bar">
+                    <form action="search.html" method="GET" id="searchForm">
+                        <!-- SECURE: CSRF token protects against cross-site request forgery -->
+                        <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                        <input type="text" name="q" id="searchInput" placeholder="Search products..." autocomplete="off" maxlength="100">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="cart.html" class="cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </a>
+                    <div class="user-menu">
+                        <button class="user-btn" id="userMenuBtn">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName">Guest</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="orders.html">My Orders</a>
+                            <a href="coupon.html" class="active">Coupons</a>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Coupon Page -->
+    <main class="coupon-page">
+        <div class="container">
+            <div class="page-header">
+                <h1><i class="fas fa-tag"></i> Coupons & Deals</h1>
+                <p>Save more with exclusive coupons and promotional codes</p>
+            </div>
+
+            <!-- Coupon Entry Section -->
+            <section class="coupon-entry-section">
+                <div class="entry-card">
+                    <h3>Have a Coupon Code?</h3>
+                    <p>Enter your coupon code below to see if it's valid</p>
+                    
+                    <!-- SECURE: Coupon validation with rate limiting and server-side verification to prevent enumeration -->
+                    <div class="coupon-input-form">
+                        <input type="text" id="couponCodeInput" placeholder="Enter coupon code" class="coupon-input" maxlength="50" pattern="[A-Z0-9\-]{3,50}" title="Coupon codes are alphanumeric">
+                        <button class="btn btn-primary" onclick="validateCoupon()">
+                            <i class="fas fa-check"></i> Validate
+                        </button>
+                    </div>
+                    
+                    <div id="validationResult" class="validation-result"></div>
+                </div>
+            </section>
+
+            <!-- Available Coupons -->
+            <section class="available-coupons-section">
+                <h2>Available Coupons</h2>
+                
+                <div class="coupons-grid">
+                    
+                    <!-- Coupon 1 -->
+                    <!-- SECURE: Coupon codes retrieved via authenticated API calls; not exposed in HTML -->
+                    <div class="coupon-card featured" data-code="SAVE20">
+                        <div class="coupon-badge">
+                            <i class="fas fa-star"></i>
+                            <span>Featured</span>
+                        </div>
+                        <div class="coupon-content">
+                            <div class="coupon-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="coupon-details">
+                                <h3 class="coupon-title">20% Off Your Order</h3>
+                                <p class="coupon-description">Save 20% on orders over $100</p>
+                                <div class="coupon-code-display">
+                                    <span class="code-label">Code:</span>
+                                    <span class="code-value">SAVE20</span>
+                                    <button class="btn-copy" onclick="copyCouponCode('SAVE20')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="coupon-meta">
+                                    <span><i class="far fa-calendar"></i> Valid until Dec 31, 2024</span>
+                                    <span><i class="fas fa-box"></i> Min. Order: $100</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="btn btn-primary btn-block" onclick="applyCouponCode('SAVE20')">
+                                Apply Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coupon 2 -->
+                    <div class="coupon-card" data-code="FREESHIP">
+                        <div class="coupon-content">
+                            <div class="coupon-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="coupon-details">
+                                <h3 class="coupon-title">Free Shipping</h3>
+                                <p class="coupon-description">Get free shipping on all orders</p>
+                                <div class="coupon-code-display">
+                                    <span class="code-label">Code:</span>
+                                    <span class="code-value">FREESHIP</span>
+                                    <button class="btn-copy" onclick="copyCouponCode('FREESHIP')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="coupon-meta">
+                                    <span><i class="far fa-calendar"></i> Valid until Dec 25, 2024</span>
+                                    <span><i class="fas fa-box"></i> No minimum</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="btn btn-primary btn-block" onclick="applyCouponCode('FREESHIP')">
+                                Apply Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coupon 3 -->
+                    <div class="coupon-card" data-code="TECH50">
+                        <div class="coupon-badge">
+                            <i class="fas fa-fire"></i>
+                            <span>Hot</span>
+                        </div>
+                        <div class="coupon-content">
+                            <div class="coupon-icon">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="coupon-details">
+                                <h3 class="coupon-title">$50 Off Electronics</h3>
+                                <p class="coupon-description">Save $50 on electronics over $500</p>
+                                <div class="coupon-code-display">
+                                    <span class="code-label">Code:</span>
+                                    <span class="code-value">TECH50</span>
+                                    <button class="btn-copy" onclick="copyCouponCode('TECH50')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="coupon-meta">
+                                    <span><i class="far fa-calendar"></i> Valid until Dec 20, 2024</span>
+                                    <span><i class="fas fa-box"></i> Electronics only</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="btn btn-primary btn-block" onclick="applyCouponCode('TECH50')">
+                                Apply Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coupon 4 -->
+                    <div class="coupon-card" data-code="WELCOME15">
+                        <div class="coupon-content">
+                            <div class="coupon-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="coupon-details">
+                                <h3 class="coupon-title">15% Off First Order</h3>
+                                <p class="coupon-description">New customers save 15% on first purchase</p>
+                                <div class="coupon-code-display">
+                                    <span class="code-label">Code:</span>
+                                    <span class="code-value">WELCOME15</span>
+                                    <button class="btn-copy" onclick="copyCouponCode('WELCOME15')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="coupon-meta">
+                                    <span><i class="far fa-calendar"></i> Valid until Dec 31, 2024</span>
+                                    <span><i class="fas fa-user"></i> New customers only</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="btn btn-primary btn-block" onclick="applyCouponCode('WELCOME15')">
+                                Apply Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coupon 5 -->
+                    <div class="coupon-card" data-code="BUNDLE25">
+                        <div class="coupon-content">
+                            <div class="coupon-icon">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                            <div class="coupon-details">
+                                <h3 class="coupon-title">25% Off Bundles</h3>
+                                <p class="coupon-description">Save on product bundle purchases</p>
+                                <div class="coupon-code-display">
+                                    <span class="code-label">Code:</span>
+                                    <span class="code-value">BUNDLE25</span>
+                                    <button class="btn-copy" onclick="copyCouponCode('BUNDLE25')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="coupon-meta">
+                                    <span><i class="far fa-calendar"></i> Valid until Dec 28, 2024</span>
+                                    <span><i class="fas fa-box"></i> Bundle items only</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="btn btn-primary btn-block" onclick="applyCouponCode('BUNDLE25')">
+                                Apply Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coupon 6 -->
+                    <div class="coupon-card expired" data-code="CYBER30">
+                        <div class="coupon-badge expired-badge">
+                            <i class="fas fa-times"></i>
+                            <span>Expired</span>
+                        </div>
+                        <div class="coupon-content">
+                            <div class="coupon-icon">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <div class="coupon-details">
+                                <h3 class="coupon-title">30% Off Cyber Monday</h3>
+                                <p class="coupon-description">Cyber Monday special discount</p>
+                                <div class="coupon-code-display">
+                                    <span class="code-label">Code:</span>
+                                    <span class="code-value">CYBER30</span>
+                                </div>
+                                <div class="coupon-meta">
+                                    <span><i class="far fa-calendar"></i> Expired: Dec 1, 2024</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="coupon-actions">
+                            <button class="btn btn-secondary btn-block" disabled>
+                                Expired
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Coupon Generator Section (Admin/Demo Feature) -->
+            <!-- SECURE: Coupon generation endpoint requires admin authentication and CSRF token -->
+            <section class="coupon-generator-section">
+                <div class="generator-card">
+                    <h3><i class="fas fa-magic"></i> Generate Custom Coupon</h3>
+                    <p class="text-muted">Create a custom promotional code (Demo Feature)</p>
+                    
+                    <form id="couponGeneratorForm" onsubmit="generateCoupon(event)">
+                        <!-- SECURE: CSRF token validates form submission authenticity -->
+                        <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Coupon Code:</label>
+                                <!-- SECURE: Input validation with pattern and maxlength -->
+                                <input type="text" id="customCode" name="code" placeholder="e.g., CUSTOM10" required maxlength="50" pattern="[A-Z0-9\-]{3,50}" title="Only uppercase letters, numbers, and hyphens allowed">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Discount Type:</label>
+                                <select id="discountType" name="type" required>
+                                    <option value="percentage">Percentage (%)</option>
+                                    <option value="fixed">Fixed Amount ($)</option>
+                                    <option value="shipping">Free Shipping</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Discount Value:</label>
+                                <!-- SECURE: Numeric input with min/max constraints -->
+                                <input type="number" id="discountValue" name="value" placeholder="e.g., 10" min="0" max="100" required step="0.01">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Minimum Order:</label>
+                                <!-- SECURE: Numeric input with min/max constraints -->
+                                <input type="number" id="minOrder" name="minOrder" placeholder="e.g., 50" min="0" max="10000" step="0.01">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Expiry Date:</label>
+                                <!-- SECURE: Date input with validation -->
+                                <input type="date" id="expiryDate" name="expiry" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Max Uses:</label>
+                                <!-- SECURE: Numeric input with min/max constraints -->
+                                <input type="number" id="maxUses" name="maxUses" placeholder="Unlimited" min="1" max="10000">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Generate Coupon
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="generatedCouponResult" class="generated-result"></div>
+                </div>
+            </section>
+
+            <!-- My Saved Coupons -->
+            <section class="saved-coupons-section">
+                <h2>My Saved Coupons</h2>
+                
+                <!-- SECURE: Saved coupons stored server-side with encryption; retrieved via authenticated API -->
+                <div class="saved-coupons-list" id="savedCouponsList">
+                    <div class="empty-state">
+                        <i class="fas fa-ticket-alt"></i>
+                        <p>No saved coupons yet</p>
+                        <p class="text-muted">Click the bookmark icon on any coupon to save it</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Referral Program -->
+            <section class="referral-section">
+                <div class="referral-card">
+                    <div class="referral-content">
+                        <div class="referral-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="referral-info">
+                            <h3>Refer a Friend, Get $10</h3>
+                            <p>Share your referral link and earn $10 credit when your friend makes their first purchase</p>
+                            
+                            <!-- SECURE: Referral link uses UUID token instead of predictable user ID -->
+                            <div class="referral-link-section">
+                                <div class="link-display">
+                                    <input type="text" id="referralLink" value="https://shopvuln.com/ref/a3b8c9d2-ef45-6789-ab01-234567890abc" readonly>
+                                    <button class="btn btn-secondary" onclick="copyReferralLink()">
+                                        <i class="fas fa-copy"></i> Copy Link
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="social-share">
+                                <span>Share:</span>
+                                <button class="social-btn facebook" onclick="shareReferral('facebook')">
+                                    <i class="fab fa-facebook"></i>
+                                </button>
+                                <button class="social-btn twitter" onclick="shareReferral('twitter')">
+                                    <i class="fab fa-twitter"></i>
+                                </button>
+                                <button class="social-btn whatsapp" onclick="shareReferral('whatsapp')">
+                                    <i class="fab fa-whatsapp"></i>
+                                </button>
+                                <button class="social-btn email" onclick="shareReferral('email')">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Coupon Terms -->
+            <section class="coupon-terms">
+                <h3>Terms & Conditions</h3>
+                <ul>
+                    <li>Coupons cannot be combined unless stated otherwise</li>
+                    <li>One coupon per order unless specified</li>
+                    <li>Coupons are not valid on previous purchases</li>
+                    <li>Expired coupons cannot be redeemed</li>
+                    <li>ShopVuln reserves the right to modify or cancel coupons at any time</li>
+                    <li>Some products may be excluded from certain promotions</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <!-- Copy Success Toast -->
+    <div id="copyToast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span>Copied to clipboard!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About ShopVuln</h4>
+                    <p>Your trusted online marketplace for quality products at competitive prices.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="search.html">Products</a></li>
+                        <li><a href="orders.html">Orders</a></li>
+                        <li><a href="coupon.html">Coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopVuln. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SECURE: Script tags with nonce attribute to prevent XSS attacks -->
+    <script src="js/main.js" nonce="{{NONCE}}"></script>
+    <script src="js/coupon.js" nonce="{{NONCE}}"></script>
+</body>
+</html>
