@@ -30,6 +30,13 @@ app.config['DEBUG'] = True  # VULNERABLE: Debug mode enabled
 jwt = JWTManager(app)
 CORS(app, resources={r"/*": {"origins": "*"}})  # VULNERABLE: CORS wide open
 
+# Register OWASP vulnerability modules
+try:
+    from owasp_integration import register_owasp_modules
+    register_owasp_modules(app)
+except ImportError:
+    print("⚠️ OWASP modules not available (optional)")
+
 # Simple in-memory storage
 users_db = {
     1: {'id': 1, 'username': 'admin', 'password': 'admin123', 'role': 'admin', 'is_admin': True},
