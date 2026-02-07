@@ -1,0 +1,385 @@
+/**
+ * SecureBank Responsive CSS
+ * Mobile-first responsive design
+ * Breakpoints: 768px (tablet), 1024px (desktop)
+ */
+
+/* ============================================================================
+   Mobile Menu Toggle
+   ============================================================================ */
+
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    z-index: 1001;
+    background-color: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+}
+
+.menu-toggle:hover {
+    background-color: var(--hover-blue);
+}
+
+.menu-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* ============================================================================
+   Tablet Styles (768px and below)
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    /* Show mobile menu toggle */
+    .menu-toggle {
+        display: block;
+    }
+    
+    /* Sidebar becomes slide-in menu */
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--transition-normal);
+        width: 280px;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    /* Overlay for mobile menu */
+    .mobile-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+    }
+    
+    .mobile-overlay.active {
+        display: block;
+    }
+    
+    /* Main content takes full width */
+    .main-content {
+        margin-left: 0;
+        padding: var(--spacing-md);
+        padding-top: calc(var(--spacing-xl) + 48px); /* Account for menu toggle */
+    }
+    
+    /* Account cards stack */
+    .account-card {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .account-balance {
+        font-size: 2rem;
+    }
+    
+    /* Cards adjust spacing */
+    .card {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* Form rows stack on mobile */
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    /* Tables scroll horizontally */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        font-size: 0.8rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: var(--spacing-sm);
+        white-space: nowrap;
+    }
+    
+    /* Button adjustments */
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.85rem;
+    }
+    
+    .account-actions {
+        flex-direction: column;
+    }
+    
+    .account-actions .btn {
+        width: 100%;
+    }
+    
+    /* Card headers stack on very small screens */
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    /* Typography adjustments */
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    h3 {
+        font-size: 1.125rem;
+    }
+    
+    /* Navigation spacing */
+    .nav-item {
+        padding: var(--spacing-md);
+    }
+}
+
+/* ============================================================================
+   Mobile (480px and below)
+   ============================================================================ */
+
+@media (max-width: 480px) {
+    /* Further reduce spacing */
+    .main-content {
+        padding: var(--spacing-sm);
+        padding-top: calc(var(--spacing-lg) + 48px);
+    }
+    
+    .card {
+        padding: var(--spacing-sm);
+    }
+    
+    /* Account card adjustments */
+    .account-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .account-balance {
+        font-size: 1.75rem;
+    }
+    
+    /* Hide less important table columns */
+    .table .hide-mobile {
+        display: none;
+    }
+    
+    /* Full width buttons */
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    /* Alert adjustments */
+    .alert {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.85rem;
+    }
+    
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        max-width: none;
+        margin: var(--spacing-sm);
+    }
+}
+
+/* ============================================================================
+   Tablet Landscape (769px to 1024px)
+   ============================================================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Narrower sidebar */
+    .sidebar {
+        width: 220px;
+    }
+    
+    .main-content {
+        margin-left: 220px;
+    }
+    
+    /* Logo adjustments */
+    .logo {
+        font-size: 1.25rem;
+    }
+    
+    /* Navigation */
+    .nav-item {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.9rem;
+    }
+}
+
+/* ============================================================================
+   Large Desktop (1400px and above)
+   ============================================================================ */
+
+@media (min-width: 1400px) {
+    .main-content {
+        max-width: 1600px;
+    }
+    
+    /* Grid layouts for cards */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: var(--spacing-lg);
+    }
+    
+    .card-grid .card {
+        margin-bottom: 0;
+    }
+}
+
+/* ============================================================================
+   Touch Device Optimizations
+   ============================================================================ */
+
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn {
+        min-height: 44px;
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    .nav-item {
+        min-height: 48px;
+    }
+    
+    .form-input,
+    .form-select {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Remove hover effects on touch devices */
+    .nav-item:hover {
+        background-color: transparent;
+    }
+    
+    .nav-item.active:hover {
+        background-color: var(--light-blue);
+    }
+    
+    /* Improve scrolling */
+    .table-container {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+    /* Hide navigation */
+    .sidebar,
+    .menu-toggle,
+    .mobile-overlay {
+        display: none !important;
+    }
+    
+    /* Full width content */
+    .main-content {
+        margin-left: 0;
+        max-width: none;
+    }
+    
+    /* Hide interactive elements */
+    .btn,
+    button,
+    .nav-item,
+    .alert-close {
+        display: none !important;
+    }
+    
+    /* Adjust colors for printing */
+    .account-card {
+        background: white !important;
+        color: black !important;
+        border: 2px solid #000;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+    
+    /* Ensure table rows don't break */
+    .table tr {
+        page-break-inside: avoid;
+    }
+}
+
+/* ============================================================================
+   Accessibility Improvements
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+@media (prefers-reduced-motion: no-preference) {
+    *:focus-visible {
+        outline: 2px solid var(--primary-blue);
+        outline-offset: 2px;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    :root {
+        --text-dark: #000000;
+        --text-light: #333333;
+        --border-color: #000000;
+    }
+    
+    .card,
+    .form-input,
+    .form-select,
+    .form-textarea {
+        border: 2px solid #000000;
+    }
+    
+    .btn-primary {
+        border: 2px solid #000000;
+    }
+}
+
+/* Dark mode preference (for future implementation) */
+@media (prefers-color-scheme: dark) {
+    /* Dark mode variables would go here */
+    /* Currently not implemented as SecureBank uses light theme */
+}
