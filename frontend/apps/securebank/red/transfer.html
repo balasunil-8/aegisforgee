@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Money - SecureBank | Red Team</title>
+    <link rel="stylesheet" href="css/banking.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🏦</div>
+            <h2 class="sidebar-title">SecureBank</h2>
+            <span class="version-badge-small">🔴 RED</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.html">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="accounts.html">
+                    <span class="menu-icon">💳</span>
+                    <span class="menu-text">Accounts</span>
+                </a>
+            </li>
+            <li class="menu-item active">
+                <a href="transfer.html">
+                    <span class="menu-icon">💸</span>
+                    <span class="menu-text">Transfer</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transactions.html">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Transactions</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="profile.html">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Profile</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="settings.html">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-danger btn-block" onclick="logout()">
+                <span>🚪</span> Logout
+            </button>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="../blue/transfer.html" style="color: var(--success-green); font-size: 0.85rem;">
+                    🔵 Switch to Blue Team
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="btn btn-icon mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title">Transfer Money</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="user-info">
+                    <span class="user-greeting" id="user-greeting">Loading...</span>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Vulnerability Warning -->
+        <div class="alert alert-warning" style="margin: 20px;">
+            <strong>⚠️ Race Condition Vulnerability Demonstration</strong><br>
+            This transfer form is vulnerable to race conditions. There's no proper transaction locking mechanism.
+            An attacker could submit multiple transfers simultaneously to exploit timing windows and overdraw accounts.
+            <br><br>
+            <strong>Try:</strong> Open this page in multiple tabs and submit transfers simultaneously to see the race condition in action.
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <div class="transfer-container">
+                <!-- Transfer Form -->
+                <div id="transfer-form-view" class="transfer-card">
+                    <div class="card-header">
+                        <h2>New Transfer</h2>
+                        <p>Send money to another account</p>
+                    </div>
+
+                    <form id="transfer-form" class="transfer-form">
+                        <div class="form-group">
+                            <label class="form-label required" for="from-account">From Account</label>
+                            <select id="from-account" class="form-input" required>
+                                <option value="">Select account...</option>
+                            </select>
+                            <div class="form-help">
+                                Available: <span id="available-balance" style="font-weight: 600;">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required" for="to-type">Transfer To</label>
+                            <select id="to-type" class="form-input" onchange="handleTransferTypeChange()" required>
+                                <option value="">Select type...</option>
+                                <option value="own">My Account</option>
+                                <option value="internal">Internal Transfer (Account Number)</option>
+                                <option value="external">External Bank</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="to-own-account-group" style="display: none;">
+                            <label class="form-label required" for="to-own-account">To My Account</label>
+                            <select id="to-own-account" class="form-input">
+                                <option value="">Select account...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="to-account-number-group" style="display: none;">
+                            <label class="form-label required" for="to-account-number">Account Number</label>
+                            <input 
+                                type="text" 
+                                id="to-account-number" 
+                                class="form-input" 
+                                placeholder="1234-5678-9012-3456"
+                                pattern="[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}"
+                            >
+                            <span class="form-help">Format: 1234-5678-9012-3456</span>
+                        </div>
+
+                        <div class="form-group" id="to-external-group" style="display: none;">
+                            <label class="form-label required" for="beneficiary-name">Beneficiary Name</label>
+                            <input 
+                                type="text" 
+                                id="beneficiary-name" 
+                                class="form-input" 
+                                placeholder="John Doe"
+                            >
+                            
+                            <label class="form-label required" for="beneficiary-bank" style="margin-top: 16px;">Bank Name</label>
+                            <input 
+                                type="text" 
+                                id="beneficiary-bank" 
+                                class="form-input" 
+                                placeholder="Bank of America"
+                            >
+                            
+                            <label class="form-label required" for="beneficiary-account" style="margin-top: 16px;">Account Number</label>
+                            <input 
+                                type="text" 
+                                id="beneficiary-account" 
+                                class="form-input" 
+                                placeholder="123456789"
+                            >
+                            
+                            <label class="form-label required" for="routing-number" style="margin-top: 16px;">Routing Number</label>
+                            <input 
+                                type="text" 
+                                id="routing-number" 
+                                class="form-input" 
+                                placeholder="021000021"
+                                pattern="[0-9]{9}"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required" for="amount">Amount</label>
+                            <div class="input-with-icon">
+                                <span class="input-icon">$</span>
+                                <input 
+                                    type="number" 
+                                    id="amount" 
+                                    class="form-input input-with-icon-padding" 
+                                    placeholder="0.00"
+                                    step="0.01"
+                                    min="0.01"
+                                    required
+                                >
+                            </div>
+                            <span class="form-help">Minimum transfer: $0.01</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="note">Note (Optional)</label>
+                            <textarea 
+                                id="note" 
+                                class="form-input" 
+                                rows="3" 
+                                placeholder="Add a note for this transfer"
+                                maxlength="200"
+                            ></textarea>
+                            <span class="form-help" id="note-counter">0/200 characters</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                Clear
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                Review Transfer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Confirmation View -->
+                <div id="confirmation-view" class="transfer-card" style="display: none;">
+                    <div class="card-header">
+                        <h2>Confirm Transfer</h2>
+                        <p>Please review the details before proceeding</p>
+                    </div>
+
+                    <div class="transfer-summary" id="transfer-summary">
+                        <!-- Summary will be populated here -->
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="editTransfer()">
+                            <span>←</span> Edit
+                        </button>
+                        <button type="button" class="btn btn-primary btn-large" onclick="submitTransfer()">
+                            <span>✓</span> Confirm & Send
+                        </button>
+                    </div>
+
+                    <!-- Race Condition Test -->
+                    <div class="alert alert-info" style="margin-top: 20px;">
+                        <strong>🧪 Test Race Condition:</strong><br>
+                        Click the "Rapid Fire Test" button to simulate multiple simultaneous requests:
+                        <br><br>
+                        <button type="button" class="btn btn-warning" onclick="raceConditionTest()">
+                            ⚡ Rapid Fire Test (10 requests)
+                        </button>
+                        <p style="margin-top: 8px; font-size: 0.85rem;">
+                            This will send 10 transfer requests simultaneously to demonstrate the race condition vulnerability.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Success View -->
+                <div id="success-view" class="transfer-card" style="display: none;">
+                    <div class="success-icon">✓</div>
+                    <h2 style="text-align: center; margin-bottom: 8px;">Transfer Successful!</h2>
+                    <p style="text-align: center; color: var(--text-light); margin-bottom: 24px;">
+                        Your transfer has been processed successfully.
+                    </p>
+
+                    <div class="transfer-summary" id="success-summary">
+                        <!-- Summary will be populated here -->
+                    </div>
+
+                    <div class="form-actions" style="justify-content: center;">
+                        <button type="button" class="btn btn-secondary" onclick="location.href='dashboard.html'">
+                            <span>←</span> Back to Dashboard
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="newTransfer()">
+                            <span>💸</span> New Transfer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Processing transfer...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        // Ensure user is authenticated
+        requireAuth();
+
+        // Get current user
+        const currentUser = getCurrentUser();
+        document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
+
+        // Sample accounts
+        const userAccounts = [
+            { id: 1001, name: 'Primary Checking', number: '****4532', balance: 5420.50 },
+            { id: 1002, name: 'Savings Account', number: '****8891', balance: 12350.75 }
+        ];
+
+        // Transfer data
+        let transferData = {};
+
+        // VULNERABILITY: No transaction locking or proper state management
+        // Multiple simultaneous requests can cause race conditions
+        let processingTransfer = false; // This flag is NOT sufficient protection!
+
+        // Initialize form
+        function initializeForm() {
+            const fromSelect = document.getElementById('from-account');
+            const toOwnSelect = document.getElementById('to-own-account');
+            
+            // Populate from account dropdown
+            fromSelect.innerHTML = '<option value="">Select account...</option>' +
+                userAccounts.map(acc => 
+                    `<option value="${acc.id}" data-balance="${acc.balance}">
+                        ${acc.name} (${acc.number}) - ${formatCurrency(acc.balance)}
+                    </option>`
+                ).join('');
+            
+            // Pre-select from URL parameter if provided
+            const params = new URLSearchParams(window.location.search);
+            const fromParam = params.get('from');
+            if (fromParam) {
+                fromSelect.value = fromParam;
+                updateAvailableBalance();
+            }
+            
+            // Populate to own account dropdown
+            toOwnSelect.innerHTML = '<option value="">Select account...</option>' +
+                userAccounts.map(acc => 
+                    `<option value="${acc.id}">
+                        ${acc.name} (${acc.number})
+                    </option>`
+                ).join('');
+        }
+
+        // Update available balance
+        document.getElementById('from-account').addEventListener('change', updateAvailableBalance);
+        
+        function updateAvailableBalance() {
+            const select = document.getElementById('from-account');
+            const selectedOption = select.options[select.selectedIndex];
+            const balance = selectedOption ? selectedOption.dataset.balance : 0;
+            document.getElementById('available-balance').textContent = formatCurrency(parseFloat(balance) || 0);
+        }
+
+        // Handle transfer type change
+        function handleTransferTypeChange() {
+            const type = document.getElementById('to-type').value;
+            
+            // Hide all conditional fields
+            document.getElementById('to-own-account-group').style.display = 'none';
+            document.getElementById('to-account-number-group').style.display = 'none';
+            document.getElementById('to-external-group').style.display = 'none';
+            
+            // Show relevant fields
+            if (type === 'own') {
+                document.getElementById('to-own-account-group').style.display = 'block';
+            } else if (type === 'internal') {
+                document.getElementById('to-account-number-group').style.display = 'block';
+            } else if (type === 'external') {
+                document.getElementById('to-external-group').style.display = 'block';
+            }
+        }
+
+        // Note character counter
+        document.getElementById('note').addEventListener('input', (e) => {
+            const length = e.target.value.length;
+            document.getElementById('note-counter').textContent = `${length}/200 characters`;
+        });
+
+        // Handle form submission
+        document.getElementById('transfer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Validate and collect form data
+            const fromAccountId = document.getElementById('from-account').value;
+            const toType = document.getElementById('to-type').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const note = document.getElementById('note').value;
+            
+            if (!fromAccountId || !toType || !amount) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // Get from account details
+            const fromAccount = userAccounts.find(acc => acc.id == fromAccountId);
+            if (!fromAccount) {
+                showAlert('Invalid source account', 'error');
+                return;
+            }
+            
+            // VULNERABILITY: Client-side balance check only!
+            // This can be bypassed, and race conditions can overdraw the account
+            if (amount > fromAccount.balance) {
+                showAlert('Insufficient funds', 'error');
+                return;
+            }
+            
+            // Collect recipient data based on type
+            let toData = {};
+            if (toType === 'own') {
+                const toAccountId = document.getElementById('to-own-account').value;
+                if (!toAccountId) {
+                    showAlert('Please select a destination account', 'error');
+                    return;
+                }
+                const toAccount = userAccounts.find(acc => acc.id == toAccountId);
+                toData = { type: 'own', account: toAccount };
+            } else if (toType === 'internal') {
+                const accountNumber = document.getElementById('to-account-number').value;
+                if (!accountNumber) {
+                    showAlert('Please enter account number', 'error');
+                    return;
+                }
+                toData = { type: 'internal', accountNumber };
+            } else if (toType === 'external') {
+                const name = document.getElementById('beneficiary-name').value;
+                const bank = document.getElementById('beneficiary-bank').value;
+                const account = document.getElementById('beneficiary-account').value;
+                const routing = document.getElementById('routing-number').value;
+                
+                if (!name || !bank || !account || !routing) {
+                    showAlert('Please fill in all beneficiary details', 'error');
+                    return;
+                }
+                
+                toData = { type: 'external', name, bank, account, routing };
+            }
+            
+            // Store transfer data
+            transferData = {
+                from: fromAccount,
+                to: toData,
+                amount,
+                note,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Show confirmation view
+            showConfirmation();
+        });
+
+        // Show confirmation
+        function showConfirmation() {
+            const summary = document.getElementById('transfer-summary');
+            const { from, to, amount, note } = transferData;
+            
+            let toDisplay = '';
+            if (to.type === 'own') {
+                toDisplay = `<div class="summary-item">
+                    <span class="summary-label">To Account:</span>
+                    <span class="summary-value">${to.account.name} (${to.account.number})</span>
+                </div>`;
+            } else if (to.type === 'internal') {
+                toDisplay = `<div class="summary-item">
+                    <span class="summary-label">To Account:</span>
+                    <span class="summary-value">${to.accountNumber}</span>
+                </div>`;
+            } else if (to.type === 'external') {
+                toDisplay = `
+                    <div class="summary-item">
+                        <span class="summary-label">Beneficiary:</span>
+                        <span class="summary-value">${to.name}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Bank:</span>
+                        <span class="summary-value">${to.bank}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Account:</span>
+                        <span class="summary-value">${to.account}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Routing:</span>
+                        <span class="summary-value">${to.routing}</span>
+                    </div>
+                `;
+            }
+            
+            summary.innerHTML = `
+                <div class="summary-item">
+                    <span class="summary-label">From Account:</span>
+                    <span class="summary-value">${from.name} (${from.number})</span>
+                </div>
+                ${toDisplay}
+                <div class="summary-item">
+                    <span class="summary-label">Amount:</span>
+                    <span class="summary-value amount-highlight">${formatCurrency(amount)}</span>
+                </div>
+                ${note ? `<div class="summary-item">
+                    <span class="summary-label">Note:</span>
+                    <span class="summary-value">${escapeHTML(note)}</span>
+                </div>` : ''}
+                <div class="summary-item">
+                    <span class="summary-label">Date:</span>
+                    <span class="summary-value">${formatDateTime(new Date().toISOString())}</span>
+                </div>
+            `;
+            
+            document.getElementById('transfer-form-view').style.display = 'none';
+            document.getElementById('confirmation-view').style.display = 'block';
+        }
+
+        // Edit transfer
+        function editTransfer() {
+            document.getElementById('confirmation-view').style.display = 'none';
+            document.getElementById('transfer-form-view').style.display = 'block';
+        }
+
+        // VULNERABILITY: No proper locking mechanism
+        // This allows race conditions when multiple requests are sent simultaneously
+        async function submitTransfer() {
+            // VULNERABILITY: This check is insufficient!
+            // Multiple calls can pass this check before any sets it to true
+            if (processingTransfer) {
+                showAlert('Transfer already in progress', 'warning');
+                return;
+            }
+            
+            processingTransfer = true;
+            showLoading();
+            
+            try {
+                // Simulate API delay (where race condition occurs)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // VULNERABILITY: No server-side balance locking
+                // Multiple simultaneous transfers could all check the same initial balance
+                // and all proceed, causing overdraft
+                
+                // Simulate successful transfer
+                console.log('Transfer submitted:', transferData);
+                
+                hideLoading();
+                showSuccess();
+                
+            } catch (error) {
+                hideLoading();
+                processingTransfer = false;
+                showAlert('Transfer failed: ' + error.message, 'error');
+            }
+        }
+
+        // Race condition test
+        async function raceConditionTest() {
+            if (!confirm('This will send 10 simultaneous transfer requests of $0.01 each to demonstrate the race condition. Continue?')) {
+                return;
+            }
+            
+            showAlert('Sending 10 simultaneous requests...', 'info');
+            
+            // Reset the flag to allow multiple requests
+            processingTransfer = false;
+            
+            // Create 10 simultaneous transfer requests
+            const promises = [];
+            for (let i = 0; i < 10; i++) {
+                promises.push(
+                    new Promise(async (resolve) => {
+                        // Each request thinks it's the first one
+                        const localProcessing = processingTransfer;
+                        
+                        // Simulate API call
+                        await new Promise(r => setTimeout(r, Math.random() * 100));
+                        
+                        console.log(`Request ${i + 1}: Processing flag was ${localProcessing}`);
+                        resolve(i);
+                    })
+                );
+            }
+            
+            const results = await Promise.all(promises);
+            
+            showAlert(`⚠️ Race Condition Exploited! All ${results.length} requests processed simultaneously, potentially overdrawing the account!`, 'error');
+            
+            console.log('%c⚠️ RACE CONDITION VULNERABILITY', 'background: #ff0000; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+            console.log('All requests passed the "processingTransfer" check because they were executed simultaneously.');
+            console.log('In a real scenario, this could allow multiple transfers to overdraw an account.');
+        }
+
+        // Show success
+        function showSuccess() {
+            const summary = document.getElementById('success-summary');
+            const { from, to, amount, note } = transferData;
+            
+            let toDisplay = to.type === 'own' ? 
+                `${to.account.name} (${to.account.number})` :
+                to.type === 'internal' ?
+                to.accountNumber :
+                `${to.name} - ${to.bank}`;
+            
+            summary.innerHTML = `
+                <div class="summary-item">
+                    <span class="summary-label">From:</span>
+                    <span class="summary-value">${from.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">To:</span>
+                    <span class="summary-value">${toDisplay}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Amount:</span>
+                    <span class="summary-value amount-highlight">${formatCurrency(amount)}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Reference ID:</span>
+                    <span class="summary-value">TXN${Math.floor(Math.random() * 1000000)}</span>
+                </div>
+            `;
+            
+            document.getElementById('confirmation-view').style.display = 'none';
+            document.getElementById('success-view').style.display = 'block';
+            
+            processingTransfer = false;
+            
+            showAlert('Transfer completed successfully!', 'success');
+        }
+
+        // New transfer
+        function newTransfer() {
+            document.getElementById('success-view').style.display = 'none';
+            document.getElementById('transfer-form-view').style.display = 'block';
+            resetForm();
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('transfer-form').reset();
+            handleTransferTypeChange();
+            updateAvailableBalance();
+            transferData = {};
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearSession();
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeForm();
+        });
+
+        // Console warnings
+        console.log('%c⚠️ RACE CONDITION VULNERABILITY', 'background: #ff0000; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+        console.log('This transfer form has no proper transaction locking.');
+        console.log('Try the "Rapid Fire Test" button in the confirmation view to see the vulnerability.');
+    </script>
+</body>
+</html>

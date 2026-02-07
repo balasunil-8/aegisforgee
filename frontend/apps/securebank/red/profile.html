@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - SecureBank | Red Team</title>
+    <link rel="stylesheet" href="css/banking.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">🏦</div>
+            <h2 class="sidebar-title">SecureBank</h2>
+            <span class="version-badge-small">🔴 RED</span>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="dashboard.html">
+                    <span class="menu-icon">📊</span>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="accounts.html">
+                    <span class="menu-icon">💳</span>
+                    <span class="menu-text">Accounts</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transfer.html">
+                    <span class="menu-icon">💸</span>
+                    <span class="menu-text">Transfer</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="transactions.html">
+                    <span class="menu-icon">📋</span>
+                    <span class="menu-text">Transactions</span>
+                </a>
+            </li>
+            <li class="menu-item active">
+                <a href="profile.html">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-text">Profile</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="settings.html">
+                    <span class="menu-icon">⚙️</span>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <button class="btn btn-danger btn-block" onclick="logout()">
+                <span>🚪</span> Logout
+            </button>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="../blue/profile.html" style="color: var(--success-green); font-size: 0.85rem;">
+                    🔵 Switch to Blue Team
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="btn btn-icon mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title">My Profile</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="user-info">
+                    <span class="user-greeting" id="user-greeting">Loading...</span>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Container -->
+        <div id="alert-container"></div>
+
+        <!-- Vulnerability Warning -->
+        <div class="alert alert-warning" style="margin: 20px;">
+            <strong>⚠️ Mass Assignment Vulnerability Demonstration</strong><br>
+            This profile update form doesn't filter submitted fields. An attacker could add hidden fields 
+            (like <code>role</code>, <code>balance</code>, or <code>isAdmin</code>) to escalate privileges or modify sensitive data.
+            <br><br>
+            <strong>Try:</strong> Open browser console and inject: 
+            <code>document.querySelector('form').innerHTML += '&lt;input type="hidden" name="role" value="admin"&gt;'</code>
+        </div>
+
+        <!-- Content -->
+        <div class="content-wrapper">
+            <div class="profile-container">
+                <!-- Profile Header -->
+                <div class="profile-header-card">
+                    <div class="profile-avatar-large">👤</div>
+                    <div class="profile-header-info">
+                        <h2 id="display-name">Loading...</h2>
+                        <p id="display-email" style="color: var(--text-light);">Loading...</p>
+                        <span class="badge badge-primary" id="display-role">user</span>
+                    </div>
+                    <div class="profile-header-actions">
+                        <button class="btn btn-secondary" onclick="toggleEditMode()">
+                            <span id="edit-btn-text">✏️ Edit Profile</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile View Mode -->
+                <div id="view-mode" class="profile-content">
+                    <div class="profile-section">
+                        <h3>Personal Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Full Name</label>
+                                <p id="view-name">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Email Address</label>
+                                <p id="view-email">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Phone Number</label>
+                                <p id="view-phone">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Date of Birth</label>
+                                <p id="view-dob">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <h3>Address Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Street Address</label>
+                                <p id="view-address">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>City</label>
+                                <p id="view-city">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>State</label>
+                                <p id="view-state">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>ZIP Code</label>
+                                <p id="view-zip">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <h3>Account Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>User ID</label>
+                                <p id="view-user-id">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Username</label>
+                                <p id="view-username">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Account Type</label>
+                                <p id="view-role">-</p>
+                            </div>
+                            <div class="info-item">
+                                <label>Member Since</label>
+                                <p id="view-created">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Edit Mode -->
+                <div id="edit-mode" class="profile-content" style="display: none;">
+                    <form id="profile-form">
+                        <div class="profile-section">
+                            <h3>Personal Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label required" for="edit-name">Full Name</label>
+                                    <input type="text" id="edit-name" name="name" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label required" for="edit-email">Email Address</label>
+                                    <input type="email" id="edit-email" name="email" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="edit-phone">Phone Number</label>
+                                    <input type="tel" id="edit-phone" name="phone" class="form-input" placeholder="(555) 123-4567">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="edit-dob">Date of Birth</label>
+                                    <input type="date" id="edit-dob" name="dateOfBirth" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-section">
+                            <h3>Address Information</h3>
+                            <div class="form-grid">
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="form-label" for="edit-address">Street Address</label>
+                                    <input type="text" id="edit-address" name="address" class="form-input" placeholder="123 Main St">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="edit-city">City</label>
+                                    <input type="text" id="edit-city" name="city" class="form-input" placeholder="New York">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="edit-state">State</label>
+                                    <input type="text" id="edit-state" name="state" class="form-input" placeholder="NY" maxlength="2">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="edit-zip">ZIP Code</label>
+                                    <input type="text" id="edit-zip" name="zipCode" class="form-input" placeholder="10001" pattern="[0-9]{5}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VULNERABILITY DEMONSTRATION: Hidden fields -->
+                        <div class="alert alert-info" style="margin: 20px 0;">
+                            <strong>🧪 Test Mass Assignment:</strong><br>
+                            The form below shows how an attacker could inject hidden fields:
+                            <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-small btn-warning" onclick="injectRoleField()">
+                                    Inject "role=admin" field
+                                </button>
+                                <button type="button" class="btn btn-small btn-warning" onclick="injectBalanceField()">
+                                    Inject "accountBalance=999999" field
+                                </button>
+                                <button type="button" class="btn btn-small btn-warning" onclick="injectAdminFlag()">
+                                    Inject "isAdmin=true" field
+                                </button>
+                            </div>
+                            <div id="injected-fields-display" style="margin-top: 10px; font-family: monospace; font-size: 0.85rem;"></div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Updating profile...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        // Ensure user is authenticated
+        requireAuth();
+
+        // Get current user
+        const currentUser = getCurrentUser();
+        document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.name || currentUser.username}!`;
+
+        // Sample user profile data
+        let userProfile = {
+            id: currentUser.id || 1,
+            username: currentUser.username || 'alice',
+            name: currentUser.name || 'Alice Johnson',
+            email: currentUser.email || 'alice@example.com',
+            phone: '(555) 123-4567',
+            dateOfBirth: '1990-05-15',
+            address: '123 Main Street',
+            city: 'New York',
+            state: 'NY',
+            zipCode: '10001',
+            role: 'user',
+            accountBalance: 17771.25, // Total from all accounts
+            isAdmin: false,
+            createdAt: '2020-01-15T10:00:00Z'
+        };
+
+        let isEditMode = false;
+
+        // Initialize profile
+        function initializeProfile() {
+            updateViewMode();
+        }
+
+        // Update view mode
+        function updateViewMode() {
+            // Header
+            document.getElementById('display-name').textContent = userProfile.name;
+            document.getElementById('display-email').textContent = userProfile.email;
+            document.getElementById('display-role').textContent = userProfile.role;
+            document.getElementById('display-role').className = `badge badge-${userProfile.role === 'admin' ? 'danger' : 'primary'}`;
+            
+            // Personal info
+            document.getElementById('view-name').textContent = userProfile.name;
+            document.getElementById('view-email').textContent = userProfile.email;
+            document.getElementById('view-phone').textContent = userProfile.phone || '-';
+            document.getElementById('view-dob').textContent = userProfile.dateOfBirth ? formatDate(userProfile.dateOfBirth) : '-';
+            
+            // Address
+            document.getElementById('view-address').textContent = userProfile.address || '-';
+            document.getElementById('view-city').textContent = userProfile.city || '-';
+            document.getElementById('view-state').textContent = userProfile.state || '-';
+            document.getElementById('view-zip').textContent = userProfile.zipCode || '-';
+            
+            // Account info
+            document.getElementById('view-user-id').textContent = userProfile.id;
+            document.getElementById('view-username').textContent = userProfile.username;
+            document.getElementById('view-role').innerHTML = `<span class="badge badge-${userProfile.role === 'admin' ? 'danger' : 'primary'}">${userProfile.role}</span>`;
+            document.getElementById('view-created').textContent = formatDate(userProfile.createdAt);
+        }
+
+        // Update edit mode
+        function updateEditMode() {
+            document.getElementById('edit-name').value = userProfile.name;
+            document.getElementById('edit-email').value = userProfile.email;
+            document.getElementById('edit-phone').value = userProfile.phone || '';
+            document.getElementById('edit-dob').value = userProfile.dateOfBirth || '';
+            document.getElementById('edit-address').value = userProfile.address || '';
+            document.getElementById('edit-city').value = userProfile.city || '';
+            document.getElementById('edit-state').value = userProfile.state || '';
+            document.getElementById('edit-zip').value = userProfile.zipCode || '';
+        }
+
+        // Toggle edit mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            
+            if (isEditMode) {
+                updateEditMode();
+                document.getElementById('view-mode').style.display = 'none';
+                document.getElementById('edit-mode').style.display = 'block';
+                document.getElementById('edit-btn-text').textContent = '👁️ View Profile';
+            } else {
+                document.getElementById('edit-mode').style.display = 'none';
+                document.getElementById('view-mode').style.display = 'block';
+                document.getElementById('edit-btn-text').textContent = '✏️ Edit Profile';
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            // Clear any injected fields
+            const form = document.getElementById('profile-form');
+            const injectedFields = form.querySelectorAll('input[data-injected="true"]');
+            injectedFields.forEach(field => field.remove());
+            document.getElementById('injected-fields-display').innerHTML = '';
+            
+            toggleEditMode();
+        }
+
+        // Handle form submission
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // VULNERABILITY: Mass Assignment
+            // We're collecting ALL form data without filtering
+            // This includes any injected hidden fields!
+            const formData = new FormData(e.target);
+            const updateData = {};
+            
+            // Convert FormData to object (VULNERABLE - no whitelist!)
+            for (let [key, value] of formData.entries()) {
+                updateData[key] = value;
+            }
+            
+            console.log('📤 Submitting profile update:', updateData);
+            
+            // Check for injected fields
+            const suspiciousFields = ['role', 'accountBalance', 'isAdmin', 'id', 'username'];
+            const injectedFields = Object.keys(updateData).filter(key => suspiciousFields.includes(key));
+            
+            if (injectedFields.length > 0) {
+                console.warn('%c⚠️ MASS ASSIGNMENT DETECTED!', 'background: #ff9800; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+                console.warn('Injected fields:', injectedFields);
+                console.warn('Full payload:', updateData);
+            }
+            
+            showLoading();
+            
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // VULNERABILITY: Apply ALL fields without validation
+                // In a real scenario, this would update the database with malicious data
+                Object.assign(userProfile, updateData);
+                
+                hideLoading();
+                
+                // Show success message
+                if (injectedFields.length > 0) {
+                    showAlert('⚠️ VULNERABILITY EXPLOITED! Profile updated with injected fields: ' + injectedFields.join(', '), 'error');
+                    
+                    // Show what changed
+                    setTimeout(() => {
+                        showAlert(`Your role is now: "${userProfile.role}" (was "user")`, 'warning');
+                    }, 2000);
+                } else {
+                    showAlert('Profile updated successfully!', 'success');
+                }
+                
+                // Update view
+                updateViewMode();
+                toggleEditMode();
+                
+            } catch (error) {
+                hideLoading();
+                showAlert('Failed to update profile: ' + error.message, 'error');
+            }
+        });
+
+        // VULNERABILITY: Inject hidden fields
+        function injectRoleField() {
+            const form = document.getElementById('profile-form');
+            
+            // Remove existing injected role field
+            const existing = form.querySelector('input[name="role"]');
+            if (existing) existing.remove();
+            
+            // Inject new hidden field
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'role';
+            input.value = 'admin';
+            input.setAttribute('data-injected', 'true');
+            form.appendChild(input);
+            
+            updateInjectedFieldsDisplay();
+            showAlert('Injected hidden field: role=admin', 'warning');
+        }
+
+        function injectBalanceField() {
+            const form = document.getElementById('profile-form');
+            
+            const existing = form.querySelector('input[name="accountBalance"]');
+            if (existing) existing.remove();
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'accountBalance';
+            input.value = '999999';
+            input.setAttribute('data-injected', 'true');
+            form.appendChild(input);
+            
+            updateInjectedFieldsDisplay();
+            showAlert('Injected hidden field: accountBalance=999999', 'warning');
+        }
+
+        function injectAdminFlag() {
+            const form = document.getElementById('profile-form');
+            
+            const existing = form.querySelector('input[name="isAdmin"]');
+            if (existing) existing.remove();
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'isAdmin';
+            input.value = 'true';
+            input.setAttribute('data-injected', 'true');
+            form.appendChild(input);
+            
+            updateInjectedFieldsDisplay();
+            showAlert('Injected hidden field: isAdmin=true', 'warning');
+        }
+
+        function updateInjectedFieldsDisplay() {
+            const form = document.getElementById('profile-form');
+            const injectedFields = form.querySelectorAll('input[data-injected="true"]');
+            const display = document.getElementById('injected-fields-display');
+            
+            if (injectedFields.length === 0) {
+                display.innerHTML = '';
+                return;
+            }
+            
+            const fieldsHTML = Array.from(injectedFields).map(field => 
+                `<div style="color: var(--danger-red);">→ ${field.name} = "${field.value}"</div>`
+            ).join('');
+            
+            display.innerHTML = `<strong>Injected Fields:</strong><br>${fieldsHTML}`;
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                clearSession();
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeProfile();
+        });
+
+        // Console warnings
+        console.log('%c⚠️ MASS ASSIGNMENT VULNERABILITY', 'background: #ff0000; color: white; padding: 10px; font-size: 14px; font-weight: bold;');
+        console.log('This form doesn\'t whitelist allowed fields. Try injecting:');
+        console.log('1. Click "Edit Profile"');
+        console.log('2. Click one of the "Inject" buttons');
+        console.log('3. Click "Save Changes"');
+        console.log('4. Observe how restricted fields are modified!');
+    </script>
+</body>
+</html>
