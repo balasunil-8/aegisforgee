@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SecureBank | Blue Team</title>
+    <link rel="stylesheet" href="css/banking.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        /* Login-specific styles */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--dark-blue) 100%);
+            padding: var(--spacing-lg);
+        }
+
+        .login-card {
+            background-color: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-xxl);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto var(--spacing-md);
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .login-title {
+            font-size: 1.75rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .login-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .login-form {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .login-footer {
+            text-align: center;
+            padding-top: var(--spacing-lg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .version-badge {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .test-credentials {
+            background-color: var(--light-blue);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-md);
+            font-size: 0.85rem;
+        }
+
+        .test-credentials h4 {
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary-blue);
+        }
+
+        .test-credentials code {
+            background-color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Version Badge -->
+            <div style="text-align: center;">
+                <span class="version-badge">🔵 BLUE TEAM - SECURE VERSION</span>
+            </div>
+
+            <!-- Login Header -->
+            <div class="login-header">
+                <div class="login-logo">🏦</div>
+                <h1 class="login-title">SecureBank</h1>
+                <p class="login-subtitle">Sign in to your account</p>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alert-container"></div>
+
+            <!-- Login Form -->
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label class="form-label required" for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        class="form-input" 
+                        placeholder="Enter your username"
+                        required
+                        autocomplete="username"
+                    >
+                    <span class="form-help">Enter your username (e.g., alice, bob)</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required" for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-input" 
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <span class="form-help">Enter your secure password</span>
+                </div>
+
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-large">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Test Credentials Box -->
+            <div class="test-credentials">
+                <h4>🔒 Secure Login</h4>
+                <p style="margin-bottom: 8px;">
+                    <strong>Test Login:</strong><br>
+                    Username: <code>alice</code> Password: <code>password123</code>
+                </p>
+                <p style="margin-bottom: 0; color: var(--success-green);">
+                    <strong>✓ Protected Against:</strong><br>
+                    SQL Injection, Session Fixation, Brute Force
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px;">
+                    <a href="../red/login.html" style="color: var(--danger-red);">
+                        🔴 Switch to Red Team (Vulnerable Version)
+                    </a>
+                </p>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">
+                    Educational purposes only. Part of AegisForge Security Platform.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Signing in...</p>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
