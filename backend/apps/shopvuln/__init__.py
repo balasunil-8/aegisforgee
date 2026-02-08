@@ -1,0 +1,18 @@
+"""
+ShopVuln Package
+Educational e-commerce application for AegisForge
+"""
+
+from .shopvuln_red_api import create_red_team_api
+from .shopvuln_blue_api import create_blue_team_api
+from .database import init_database, get_connection
+from .seed_data import seed_database
+
+__version__ = '1.0.0'
+__all__ = [
+    'create_red_team_api',
+    'create_blue_team_api',
+    'init_database',
+    'get_connection',
+    'seed_database'
+]

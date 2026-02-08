@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Shopping cart on ShopVuln">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-{{NONCE}}'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' https: data:; connect-src 'self' /api/blue/shopvuln/">
+    
+    <title>Shopping Cart | ShopVuln</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cart.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <div class="search-bar">
+                    <form action="search.html" method="GET" id="searchForm">
+                        <input type="hidden" name="csrf_token" value="{{CSRF_TOKEN}}">
+                        <input type="text" name="q" id="searchInput" placeholder="Search products..." autocomplete="off" maxlength="100" pattern="[a-zA-Z0-9\s\-]+" required>
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="cart.html" class="cart-link active">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartCount">3</span>
+                    </a>
+                    <div class="user-menu">
+                        <button class="user-btn" id="userMenuBtn">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName">Guest</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="orders.html">My Orders</a>
+                            <a href="coupon.html">Coupons</a>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Cart Page -->
+    <main class="cart-page">
+        <div class="container">
+            <h1>Shopping Cart</h1>
+
+            <div class="cart-layout">
+                <!-- Cart Items -->
+                <div class="cart-items-section">
+                    <!-- SECURE: Cart items validated server-side before checkout -->
+                    <div class="cart-items" id="cartItems">
+                        <div class="cart-item" data-product-id="1">
+                            <div class="item-image">
+                                <img src="https://via.placeholder.com/150x150?text=Laptop" alt="Premium Laptop Pro 15">
+                            </div>
+                            <div class="item-details">
+                                <h3>Premium Laptop Pro 15</h3>
+                                <p class="item-specs">Color: Silver | RAM: 16GB</p>
+                                <p class="item-price">$1,299.99</p>
+                                <button class="btn-link text-danger" onclick="removeItem(1)">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                            <div class="item-quantity">
+                                <label>Quantity:</label>
+                                <!-- SECURE: Quantity validated server-side -->
+                                <div class="quantity-selector">
+                                    <button onclick="updateQuantity(1, -1)"><i class="fas fa-minus"></i></button>
+                                    <input type="number" value="1" min="1" max="10" id="qty-1" onchange="updateQuantity(1, 0)" required>
+                                    <button onclick="updateQuantity(1, 1)"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="item-total">
+                                <p class="total-label">Total:</p>
+                                <p class="total-price" id="total-1">$1,299.99</p>
+                            </div>
+                        </div>
+
+                        <div class="cart-item" data-product-id="3">
+                            <div class="item-image">
+                                <img src="https://via.placeholder.com/150x150?text=Headphones" alt="Wireless Headphones">
+                            </div>
+                            <div class="item-details">
+                                <h3>Wireless Headphones Elite</h3>
+                                <p class="item-specs">Color: Black | Noise Cancelling</p>
+                                <p class="item-price">$349.99</p>
+                                <button class="btn-link text-danger" onclick="removeItem(3)">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                            <div class="item-quantity">
+                                <label>Quantity:</label>
+                                <div class="quantity-selector">
+                                    <button onclick="updateQuantity(3, -1)"><i class="fas fa-minus"></i></button>
+                                    <input type="number" value="2" min="1" max="10" id="qty-3" onchange="updateQuantity(3, 0)" required>
+                                    <button onclick="updateQuantity(3, 1)"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="item-total">
+                                <p class="total-label">Total:</p>
+                                <p class="total-price" id="total-3">$699.98</p>
+                            </div>
+                        </div>
+
+                        <div class="cart-item" data-product-id="8">
+                            <div class="item-image">
+                                <img src="https://via.placeholder.com/150x150?text=Mouse" alt="Gaming Mouse">
+                            </div>
+                            <div class="item-details">
+                                <h3>Gaming Mouse RGB</h3>
+                                <p class="item-specs">DPI: 16000 | RGB Lighting</p>
+                                <p class="item-price">$79.99</p>
+                                <button class="btn-link text-danger" onclick="removeItem(8)">
+                                    <i class="fas fa-trash"></i> Remove
+                                </button>
+                            </div>
+                            <div class="item-quantity">
+                                <label>Quantity:</label>
+                                <div class="quantity-selector">
+                                    <button onclick="updateQuantity(8, -1)"><i class="fas fa-minus"></i></button>
+                                    <input type="number" value="1" min="1" max="10" id="qty-8" onchange="updateQuantity(8, 0)" required>
+                                    <button onclick="updateQuantity(8, 1)"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="item-total">
+                                <p class="total-label">Total:</p>
+                                <p class="total-price" id="total-8">$79.99</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cart-actions">
+                        <a href="search.html" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Continue Shopping
+                        </a>
+                        <button class="btn btn-outline" onclick="clearCart()">
+                            <i class="fas fa-trash"></i> Clear Cart
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal (3 items):</span>
+                        <span id="subtotal">$2,079.96</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Shipping:</span>
+                        <span id="shipping">$0.00</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Tax:</span>
+                        <span id="tax">$166.40</span>
+                    </div>
+
+                    <!-- SECURE: Coupon validation performed server-side -->
+                    <div class="coupon-section">
+                        <h4>Have a Coupon?</h4>
+                        <div class="coupon-input-group">
+                            <input type="text" id="couponCode" placeholder="Enter coupon code" maxlength="20" pattern="[A-Z0-9]+" required>
+                            <button class="btn btn-secondary" onclick="applyCoupon()">Apply</button>
+                        </div>
+                        <div id="couponMessage" class="coupon-message"></div>
+                        <div id="appliedCoupon" class="applied-coupon" style="display: none;">
+                            <span>Coupon Applied: <strong id="couponName"></strong></span>
+                            <span class="discount-amount" id="discountAmount">-$0.00</span>
+                            <button class="btn-icon" onclick="removeCoupon()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-row total-row">
+                        <span>Total:</span>
+                        <span class="total-amount" id="totalAmount">$2,246.36</span>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block" onclick="proceedToCheckout()">
+                        Proceed to Checkout
+                    </button>
+
+                    <div class="payment-methods">
+                        <p>We Accept:</p>
+                        <div class="payment-icons">
+                            <i class="fab fa-cc-visa"></i>
+                            <i class="fab fa-cc-mastercard"></i>
+                            <i class="fab fa-cc-amex"></i>
+                            <i class="fab fa-cc-paypal"></i>
+                        </div>
+                    </div>
+
+                    <div class="security-badge">
+                        <i class="fas fa-lock"></i>
+                        <span>Secure Checkout</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended Products -->
+            <section class="recommended-section">
+                <h2>You May Also Like</h2>
+                <div class="product-grid">
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="https://via.placeholder.com/200x200?text=Keyboard" alt="Mechanical Keyboard">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">Mechanical Keyboard Pro</h3>
+                            <div class="product-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                                <span>(4.5)</span>
+                            </div>
+                            <div class="product-footer">
+                                <span class="price">$129.99</span>
+                                <button class="btn btn-primary btn-sm" onclick="addToCart(9)">
+                                    <i class="fas fa-cart-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="https://via.placeholder.com/200x200?text=Monitor" alt="4K Monitor">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">4K Monitor 27"</h3>
+                            <div class="product-rating">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <span>(5.0)</span>
+                            </div>
+                            <div class="product-footer">
+                                <span class="price">$499.99</span>
+                                <button class="btn btn-primary btn-sm" onclick="addToCart(10)">
+                                    <i class="fas fa-cart-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About ShopVuln</h4>
+                    <p>Your trusted online marketplace for quality products at competitive prices.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="search.html">Products</a></li>
+                        <li><a href="orders.html">Orders</a></li>
+                        <li><a href="coupon.html">Coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopVuln. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script nonce="{{NONCE}}" src="js/main.js"></script>
+    <script nonce="{{NONCE}}" src="js/cart.js"></script>
+</body>
+</html>

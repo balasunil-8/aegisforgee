@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Search products on ShopVuln">
+    <title>Search Products | ShopVuln</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/search.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <!-- VULNERABILITY: XSS in search parameter - directly reflected in results -->
+                <div class="search-bar">
+                    <form action="search.html" method="GET" id="searchForm">
+                        <input type="text" name="q" id="searchInput" placeholder="Search products..." autocomplete="off">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="cart.html" class="cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </a>
+                    <div class="user-menu">
+                        <button class="user-btn" id="userMenuBtn">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName">Guest</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="orders.html">My Orders</a>
+                            <a href="coupon.html">Coupons</a>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Results Section -->
+    <main class="search-page">
+        <div class="container">
+            <div class="search-layout">
+                <!-- Sidebar Filters -->
+                <aside class="filters-sidebar">
+                    <h3>Filters</h3>
+                    
+                    <!-- VULNERABILITY: Category filter susceptible to SQL injection -->
+                    <div class="filter-group">
+                        <h4>Category</h4>
+                        <div class="filter-options">
+                            <label>
+                                <input type="checkbox" name="category" value="electronics" onchange="applyFilters()">
+                                <span>Electronics</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" name="category" value="fashion" onchange="applyFilters()">
+                                <span>Fashion</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" name="category" value="home" onchange="applyFilters()">
+                                <span>Home & Garden</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" name="category" value="sports" onchange="applyFilters()">
+                                <span>Sports</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" name="category" value="books" onchange="applyFilters()">
+                                <span>Books</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- VULNERABILITY: Price range filter vulnerable to parameter manipulation -->
+                    <div class="filter-group">
+                        <h4>Price Range</h4>
+                        <div class="price-range">
+                            <input type="number" id="minPrice" placeholder="Min" min="0" onchange="applyFilters()">
+                            <span>-</span>
+                            <input type="number" id="maxPrice" placeholder="Max" min="0" onchange="applyFilters()">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Rating</h4>
+                        <div class="filter-options">
+                            <label>
+                                <input type="checkbox" name="rating" value="5" onchange="applyFilters()">
+                                <span><i class="fas fa-star"></i> 5 Stars</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" name="rating" value="4" onchange="applyFilters()">
+                                <span><i class="fas fa-star"></i> 4+ Stars</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" name="rating" value="3" onchange="applyFilters()">
+                                <span><i class="fas fa-star"></i> 3+ Stars</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary btn-block" onclick="clearFilters()">Clear Filters</button>
+                    </div>
+                </aside>
+
+                <!-- Results Content -->
+                <div class="results-content">
+                    <!-- Search Header - VULNERABILITY: XSS by displaying unsanitized search query -->
+                    <div class="search-header">
+                        <h2>Search Results</h2>
+                        <p id="searchQuery" class="search-query-display">
+                            <!-- Search query will be displayed here without sanitization -->
+                        </p>
+                        <div class="results-meta">
+                            <span id="resultCount">0 products found</span>
+                            <!-- VULNERABILITY: Sort parameter can be manipulated for SQL injection -->
+                            <select id="sortBy" onchange="sortResults(this.value)">
+                                <option value="relevance">Sort by: Relevance</option>
+                                <option value="price_asc">Price: Low to High</option>
+                                <option value="price_desc">Price: High to Low</option>
+                                <option value="rating">Rating</option>
+                                <option value="newest">Newest</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Product Results Grid -->
+                    <!-- VULNERABILITY: Product data rendered without sanitization (XSS) -->
+                    <div class="product-grid" id="searchResults">
+                        <!-- Search results will be dynamically loaded here -->
+                        <div class="product-card" data-id="5">
+                            <div class="product-image">
+                                <img src="https://via.placeholder.com/300x300?text=Tablet" alt="Tablet Pro">
+                                <span class="badge badge-success">New</span>
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-title">Tablet Pro 12.9"</h3>
+                                <p class="product-description">Professional tablet with Apple Pencil support</p>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <span>(5.0)</span>
+                                </div>
+                                <div class="product-footer">
+                                    <span class="price">$1,099.99</span>
+                                    <button class="btn btn-primary btn-sm" onclick="addToCart(5)">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="product-card" data-id="6">
+                            <div class="product-image">
+                                <img src="https://via.placeholder.com/300x300?text=Camera" alt="Digital Camera">
+                                <span class="badge badge-warning">Sale</span>
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-title">Digital Camera 4K</h3>
+                                <p class="product-description">Mirrorless camera with 4K video recording</p>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                    <span>(4.6)</span>
+                                </div>
+                                <div class="product-footer">
+                                    <span class="price">$1,799.99</span>
+                                    <button class="btn btn-primary btn-sm" onclick="addToCart(6)">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="product-card" data-id="7">
+                            <div class="product-image">
+                                <img src="https://via.placeholder.com/300x300?text=Speaker" alt="Bluetooth Speaker">
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-title">Bluetooth Speaker XL</h3>
+                                <p class="product-description">Portable speaker with 360° sound and waterproof</p>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <span>(4.2)</span>
+                                </div>
+                                <div class="product-footer">
+                                    <span class="price">$199.99</span>
+                                    <button class="btn btn-primary btn-sm" onclick="addToCart(7)">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="product-card" data-id="8">
+                            <div class="product-image">
+                                <img src="https://via.placeholder.com/300x300?text=Mouse" alt="Gaming Mouse">
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-title">Gaming Mouse RGB</h3>
+                                <p class="product-description">Ergonomic gaming mouse with programmable buttons</p>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <span>(4.8)</span>
+                                </div>
+                                <div class="product-footer">
+                                    <span class="price">$79.99</span>
+                                    <button class="btn btn-primary btn-sm" onclick="addToCart(8)">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <!-- VULNERABILITY: Page parameter vulnerable to injection attacks -->
+                    <div class="pagination" id="pagination">
+                        <button class="page-btn" onclick="changePage(1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="page-btn active" onclick="changePage(1)">1</button>
+                        <button class="page-btn" onclick="changePage(2)">2</button>
+                        <button class="page-btn" onclick="changePage(3)">3</button>
+                        <span class="page-dots">...</span>
+                        <button class="page-btn" onclick="changePage(10)">10</button>
+                        <button class="page-btn" onclick="changePage(2)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About ShopVuln</h4>
+                    <p>Your trusted online marketplace for quality products at competitive prices.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="search.html">Products</a></li>
+                        <li><a href="orders.html">Orders</a></li>
+                        <li><a href="coupon.html">Coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopVuln. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/cart.js"></script>
+</body>
+</html>
