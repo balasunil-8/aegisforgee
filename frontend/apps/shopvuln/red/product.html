@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Product details on ShopVuln">
+    <title>Product Details | ShopVuln</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/product.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>ShopVuln</span>
+                    </a>
+                </div>
+
+                <div class="search-bar">
+                    <form action="search.html" method="GET" id="searchForm">
+                        <input type="text" name="q" id="searchInput" placeholder="Search products..." autocomplete="off">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="cart.html" class="cart-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </a>
+                    <div class="user-menu">
+                        <button class="user-btn" id="userMenuBtn">
+                            <i class="fas fa-user-circle"></i>
+                            <span id="userName">Guest</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="orders.html">My Orders</a>
+                            <a href="coupon.html">Coupons</a>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Product Details Section -->
+    <!-- VULNERABILITY: Product ID in URL susceptible to IDOR (Insecure Direct Object Reference) -->
+    <main class="product-page">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span>/</span>
+                <a href="search.html?category=electronics">Electronics</a>
+                <span>/</span>
+                <span id="productBreadcrumb">Product</span>
+            </nav>
+
+            <div class="product-detail-layout">
+                <!-- Product Images -->
+                <div class="product-images">
+                    <div class="main-image">
+                        <img id="mainImage" src="https://via.placeholder.com/600x600?text=Laptop" alt="Product Image">
+                    </div>
+                    <div class="thumbnail-gallery">
+                        <img src="https://via.placeholder.com/100x100?text=1" alt="Thumbnail 1" onclick="changeImage(this)">
+                        <img src="https://via.placeholder.com/100x100?text=2" alt="Thumbnail 2" onclick="changeImage(this)">
+                        <img src="https://via.placeholder.com/100x100?text=3" alt="Thumbnail 3" onclick="changeImage(this)">
+                        <img src="https://via.placeholder.com/100x100?text=4" alt="Thumbnail 4" onclick="changeImage(this)">
+                    </div>
+                </div>
+
+                <!-- Product Information -->
+                <div class="product-details">
+                    <h1 id="productName">Premium Laptop Pro 15</h1>
+                    
+                    <div class="product-rating-section">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="rating-score">4.5</span>
+                        <span class="review-count">(234 reviews)</span>
+                    </div>
+
+                    <div class="product-price">
+                        <span class="current-price" id="productPrice">$1,299.99</span>
+                        <span class="original-price">$1,599.99</span>
+                        <span class="discount-badge">Save 19%</span>
+                    </div>
+
+                    <div class="product-description">
+                        <h3>Description</h3>
+                        <!-- VULNERABILITY: Product description rendered without sanitization (Stored XSS) -->
+                        <p id="productDescription">
+                            High-performance laptop with 16GB RAM and 512GB SSD. Perfect for professionals 
+                            and content creators. Features include:
+                        </p>
+                        <ul>
+                            <li>Intel Core i7 12th Gen Processor</li>
+                            <li>16GB DDR4 RAM</li>
+                            <li>512GB NVMe SSD</li>
+                            <li>15.6" Full HD Display</li>
+                            <li>NVIDIA GeForce RTX 3060 Graphics</li>
+                            <li>Backlit Keyboard</li>
+                        </ul>
+                    </div>
+
+                    <div class="product-options">
+                        <div class="option-group">
+                            <label>Color:</label>
+                            <div class="color-options">
+                                <button class="color-btn active" data-color="silver" style="background: #c0c0c0;"></button>
+                                <button class="color-btn" data-color="black" style="background: #000;"></button>
+                                <button class="color-btn" data-color="blue" style="background: #0066cc;"></button>
+                            </div>
+                        </div>
+
+                        <div class="option-group">
+                            <label>Quantity:</label>
+                            <div class="quantity-selector">
+                                <button onclick="decreaseQuantity()"><i class="fas fa-minus"></i></button>
+                                <input type="number" id="quantity" value="1" min="1" max="10">
+                                <button onclick="increaseQuantity()"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-actions">
+                        <button class="btn btn-primary btn-lg" onclick="addToCart()">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                        <button class="btn btn-secondary btn-lg" onclick="buyNow()">
+                            <i class="fas fa-bolt"></i> Buy Now
+                        </button>
+                        <button class="btn-icon" onclick="addToWishlist()">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <div class="product-meta">
+                        <p><strong>SKU:</strong> <span id="productSku">LAP-PRO-15-SLV</span></p>
+                        <p><strong>Category:</strong> <a href="search.html?category=electronics">Electronics</a></p>
+                        <p><strong>Availability:</strong> <span class="stock-status in-stock">In Stock</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Tabs -->
+            <div class="product-tabs">
+                <div class="tab-headers">
+                    <button class="tab-btn active" onclick="switchTab('reviews')">Reviews</button>
+                    <button class="tab-btn" onclick="switchTab('specs')">Specifications</button>
+                    <button class="tab-btn" onclick="switchTab('shipping')">Shipping & Returns</button>
+                </div>
+
+                <div class="tab-content">
+                    <!-- Reviews Tab -->
+                    <div id="reviews" class="tab-panel active">
+                        <div class="reviews-section">
+                            <div class="reviews-header">
+                                <h3>Customer Reviews</h3>
+                                <button class="btn btn-primary" onclick="openReviewModal()">Write a Review</button>
+                            </div>
+
+                            <div class="reviews-summary">
+                                <div class="rating-overview">
+                                    <div class="avg-rating">4.5</div>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <p>Based on 234 reviews</p>
+                                </div>
+                                <div class="rating-breakdown">
+                                    <div class="rating-row">
+                                        <span>5 <i class="fas fa-star"></i></span>
+                                        <div class="bar"><div style="width: 70%;"></div></div>
+                                        <span>164</span>
+                                    </div>
+                                    <div class="rating-row">
+                                        <span>4 <i class="fas fa-star"></i></span>
+                                        <div class="bar"><div style="width: 20%;"></div></div>
+                                        <span>47</span>
+                                    </div>
+                                    <div class="rating-row">
+                                        <span>3 <i class="fas fa-star"></i></span>
+                                        <div class="bar"><div style="width: 7%;"></div></div>
+                                        <span>16</span>
+                                    </div>
+                                    <div class="rating-row">
+                                        <span>2 <i class="fas fa-star"></i></span>
+                                        <div class="bar"><div style="width: 2%;"></div></div>
+                                        <span>5</span>
+                                    </div>
+                                    <div class="rating-row">
+                                        <span>1 <i class="fas fa-star"></i></span>
+                                        <div class="bar"><div style="width: 1%;"></div></div>
+                                        <span>2</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- VULNERABILITY: Reviews rendered without sanitization (Stored XSS) -->
+                            <div class="reviews-list" id="reviewsList">
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <div class="reviewer-avatar">JD</div>
+                                            <div>
+                                                <h4>John Doe</h4>
+                                                <div class="review-meta">
+                                                    <div class="stars">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                    </div>
+                                                    <span class="review-date">2 days ago</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-icon"><i class="fas fa-ellipsis-v"></i></button>
+                                    </div>
+                                    <div class="review-content">
+                                        <h5>Excellent laptop for the price!</h5>
+                                        <p>This laptop exceeded my expectations. The performance is outstanding and the build quality is premium. Highly recommended!</p>
+                                    </div>
+                                    <div class="review-actions">
+                                        <button class="review-action-btn" onclick="likeReview(1)">
+                                            <i class="far fa-thumbs-up"></i> Helpful (24)
+                                        </button>
+                                        <button class="review-action-btn" onclick="reportReview(1)">
+                                            <i class="far fa-flag"></i> Report
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <div class="reviewer-avatar">SM</div>
+                                            <div>
+                                                <h4>Sarah Miller</h4>
+                                                <div class="review-meta">
+                                                    <div class="stars">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="far fa-star"></i>
+                                                    </div>
+                                                    <span class="review-date">1 week ago</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-icon"><i class="fas fa-ellipsis-v"></i></button>
+                                    </div>
+                                    <div class="review-content">
+                                        <h5>Great for work</h5>
+                                        <p>Perfect for my daily work tasks. Battery life is decent, though it could be better. Overall very satisfied.</p>
+                                    </div>
+                                    <div class="review-actions">
+                                        <button class="review-action-btn" onclick="likeReview(2)">
+                                            <i class="far fa-thumbs-up"></i> Helpful (12)
+                                        </button>
+                                        <button class="review-action-btn" onclick="reportReview(2)">
+                                            <i class="far fa-flag"></i> Report
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-secondary btn-block" onclick="loadMoreReviews()">Load More Reviews</button>
+                        </div>
+                    </div>
+
+                    <!-- Specifications Tab -->
+                    <div id="specs" class="tab-panel">
+                        <table class="specs-table">
+                            <tr>
+                                <th>Processor</th>
+                                <td>Intel Core i7 12th Gen</td>
+                            </tr>
+                            <tr>
+                                <th>RAM</th>
+                                <td>16GB DDR4</td>
+                            </tr>
+                            <tr>
+                                <th>Storage</th>
+                                <td>512GB NVMe SSD</td>
+                            </tr>
+                            <tr>
+                                <th>Display</th>
+                                <td>15.6" Full HD (1920x1080)</td>
+                            </tr>
+                            <tr>
+                                <th>Graphics</th>
+                                <td>NVIDIA GeForce RTX 3060 6GB</td>
+                            </tr>
+                            <tr>
+                                <th>Operating System</th>
+                                <td>Windows 11 Pro</td>
+                            </tr>
+                            <tr>
+                                <th>Battery</th>
+                                <td>56Wh, up to 8 hours</td>
+                            </tr>
+                            <tr>
+                                <th>Weight</th>
+                                <td>4.2 lbs (1.9 kg)</td>
+                            </tr>
+                            <tr>
+                                <th>Dimensions</th>
+                                <td>14.1 x 9.3 x 0.7 inches</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- Shipping Tab -->
+                    <div id="shipping" class="tab-panel">
+                        <div class="shipping-info">
+                            <h4>Shipping Information</h4>
+                            <p>Free standard shipping on orders over $50. Express shipping available at checkout.</p>
+                            <ul>
+                                <li>Standard Shipping: 5-7 business days</li>
+                                <li>Express Shipping: 2-3 business days</li>
+                                <li>Overnight Shipping: 1 business day</li>
+                            </ul>
+
+                            <h4>Return Policy</h4>
+                            <p>30-day money-back guarantee. Items must be returned in original condition with all accessories and packaging.</p>
+                            <ul>
+                                <li>Free returns within 30 days</li>
+                                <li>Refunds processed within 5-7 business days</li>
+                                <li>Exchange available for defective items</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Review Modal -->
+    <!-- VULNERABILITY: Review submission vulnerable to XSS via unsanitized user input -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Write a Review</h3>
+                <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm" onsubmit="submitReview(event)">
+                    <div class="form-group">
+                        <label>Rating:</label>
+                        <div class="star-rating">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" id="rating" name="rating" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Review Title:</label>
+                        <input type="text" id="reviewTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Review:</label>
+                        <textarea id="reviewText" name="review" rows="5" required></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>About ShopVuln</h4>
+                    <p>Your trusted online marketplace for quality products at competitive prices.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="search.html">Products</a></li>
+                        <li><a href="orders.html">Orders</a></li>
+                        <li><a href="coupon.html">Coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">Returns</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopVuln. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/product.js"></script>
+    <script src="js/cart.js"></script>
+</body>
+</html>
