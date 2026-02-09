@@ -1,0 +1,83 @@
+MIT License
+
+Copyright (c) 2024 AegisForge Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Educational Use Notice
+
+AegisForge is an educational security testing platform containing intentionally
+vulnerable code for learning purposes. This software is intended solely for:
+
+- Educational and training purposes
+- Security research in controlled environments
+- Authorized security testing and penetration testing
+- Learning about web application vulnerabilities and defenses
+
+## Disclaimer
+
+THE SOFTWARE CONTAINS INTENTIONALLY VULNERABLE CODE. USERS ARE RESPONSIBLE FOR:
+
+1. Using this software only in authorized, controlled environments
+2. Not deploying vulnerable components in production systems
+3. Complying with all applicable laws and regulations
+4. Obtaining proper authorization before conducting security testing
+5. Using knowledge gained responsibly and ethically
+
+The authors and contributors are not responsible for any misuse of this software
+or any damages resulting from the use of vulnerable components.
+
+## Third-Party Licenses
+
+This software uses the following third-party libraries and frameworks:
+
+- Flask (BSD-3-Clause License)
+- SQLAlchemy (MIT License)
+- Redis (BSD License)
+- PostgreSQL (PostgreSQL License)
+- Scikit-learn (BSD License)
+- Pandas (BSD License)
+- NumPy (BSD License)
+- Gunicorn (MIT License)
+- Celery (BSD License)
+
+See individual package documentation for complete license information.
+
+## Security Research Ethics
+
+By using AegisForge, you agree to:
+
+- Conduct security testing only on systems you own or have authorization to test
+- Use discovered vulnerabilities and techniques responsibly and ethically
+- Not use this software for malicious purposes or unauthorized access
+- Comply with computer fraud and abuse laws in your jurisdiction
+- Follow responsible disclosure practices for any vulnerabilities found
+
+## Contact
+
+For questions about licensing or acceptable use:
+
+- GitHub Issues: https://github.com/balasunil-8/aegisforgee/issues
+- Security Concerns: See SECURITY.md
+
+---
+
+Copyright (c) 2024 AegisForge Contributors. All rights reserved.
