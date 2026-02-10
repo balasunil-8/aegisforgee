@@ -255,13 +255,13 @@ scripts\windows\stop_all_apps.bat
 Now that you're up and running, here's what to explore next:
 
 ### 1. 🎓 Learn the Basics
-**Recommended:** [First Time Setup Guide](docs/getting-started/first-time-setup.md)
+**Recommended:** [First Time Setup Guide](docs/apps/first-time-setup.md)
 - Understand the dual-mode architecture
 - Learn about Red vs Blue teams
 - Explore the platform features
 
 ### 2. 🔍 Explore More Vulnerabilities
-**Recommended:** [Your First Vulnerability Guide](docs/getting-started/your-first-vulnerability.md)
+**Recommended:** [Your First Vulnerability Guide](docs/apps/your-first-vulnerability.md)
 - XSS (Cross-Site Scripting)
 - CSRF (Cross-Site Request Forgery)
 - IDOR (Insecure Direct Object Reference)
