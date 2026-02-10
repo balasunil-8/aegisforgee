@@ -4,7 +4,7 @@
 
 ---
 
-## 📍 Current Version: 1.0 (Released)
+## 📍 Current Version: 2.0 (Released)
 
 ### ✅ Delivered Features
 - ✅ Dual-mode architecture (Red Team + Blue Team)
