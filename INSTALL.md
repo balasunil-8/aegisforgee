@@ -177,7 +177,7 @@ cd ../../..
 python3 scripts/python/health_check.py
 ```
 
-**Detailed guide:** [Linux Installation Guide](docs/installation/linux-install.md)
+**Detailed guide:** [Linux Installation Guide](#linux-installation)
 
 ---
 
