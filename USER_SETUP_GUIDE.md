@@ -148,21 +148,14 @@ python scripts/python/health_check.py
 AegisForge System Health Check v2.0
 ============================================================
 
-[1/12] Python Version: ✓ PASS
-[2/12] System Information: ✓ PASS
-[3/12] Python Dependencies: ✓ PASS
-[4/12] Directory Structure: ✓ PASS
-[5/12] Database Files: ✓ PASS
-[6/12] Port Availability: ✓ PASS (5000-5003)
-[7/12] Disk Space: ✓ PASS
-[8/12] Internet Connection: ✓ PASS
-[9/12] Git Installation: ✓ PASS
-[10/12] Documentation Files: ✓ PASS
-[11/12] System Memory: ✓ PASS
-[12/12] Web Browser: ✓ PASS
+[1/4] Python Version: ✓ PASS
+[2/4] Python Dependencies: ✓ PASS
+[3/4] Database Connectivity: ✓ PASS
+[4/4] Disk Space: ✓ PASS
+Port Status: ✓ 5000-5003 available
 
 ============================================================
-Results: 12/12 checks passed
+Results: 4/4 checks passed
 ✓ System ready!
 ============================================================
 ```
