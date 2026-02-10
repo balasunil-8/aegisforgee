@@ -88,7 +88,6 @@ echo   1. Start all applications: scripts\windows\start_all_apps.bat
 echo   2. Open browser: http://localhost:5000
 echo   3. Login with: alice / password123
 echo.
-echo Documentation: docs\getting-started\first-time-setup.md
-echo Quick Start: QUICKSTART.md
+echo Documentation / Quick Start: QUICKSTART.md
 echo.
 pause
