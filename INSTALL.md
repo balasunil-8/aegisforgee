@@ -202,7 +202,7 @@ brew install python3
 # Follow automated installation steps above
 ```
 
-**Detailed guide:** [macOS Installation Guide](docs/installation/macos-install.md)
+**Detailed guide:** [macOS Installation Guide](#macos-installation)
 
 ---
 
