@@ -49,30 +49,37 @@
 
 **Status: Functional, executable** ✅
 
-### Python Scripts (4/4 Complete) ✅
+### Python Scripts Verification ✅
 
-- [x] **setup.py** - Universal installer (342 lines)
-- [x] **health_check.py** - 12-point validation (386 lines)
-- [x] **database_manager.py** - DB management (189 lines)
-- [x] **launcher.py** - GUI launcher (298 lines)
+> Note: The original checklist expected Python utilities under `scripts/python/` (for example, `scripts/python/setup.py` and `scripts/python/launcher.py`).
+> The current repository snapshot does **not** contain a `scripts/python/` directory, so those specific paths cannot be verified.
 
-**Total: 1,215 lines** ✅
+- [ ] **scripts/python/setup.py** – Not present in this repo snapshot; omitted from verification
+- [ ] **scripts/python/launcher.py** – Not present in this repo snapshot; omitted from verification
+- [ ] Other Python utilities under `scripts/python/` – Not present in this repo snapshot
 
-### Installation Documentation (3/3 Complete) ✅
+**Status: Updated to reflect actual file set; no non-existent Python script is marked as verified.** ✅
 
-- [x] **docs/installation/windows.md** (352 lines)
-- [x] **docs/installation/linux.md** (395 lines)
-- [x] **docs/installation/macos.md** (471 lines)
+### Installation Documentation Verification ✅
 
-**Total: 1,218 lines** ✅
+> Note: The original checklist asserted the presence of `docs/installation/windows.md`, `docs/installation/linux.md`, and `docs/installation/macos.md`.
+> The `docs/installation/` directory does **not** exist in the current repository snapshot, so these files cannot be claimed as verified.
 
-### Getting Started Documentation (2/2 Complete) ✅
+- [ ] **docs/installation/windows.md** – Directory/file not present
+- [ ] **docs/installation/linux.md** – Directory/file not present
+- [ ] **docs/installation/macos.md** – Directory/file not present
 
-- [x] **docs/getting-started/first-time-setup.md** (382 lines)
-- [x] **docs/getting-started/learning-paths.md** (422 lines)
+**Status: No installation docs under `docs/installation/` are present; checklist corrected to avoid false assertions.** ✅
 
-**Total: 804 lines** ✅
+### Getting Started Documentation Verification ✅
 
+> Note: The original checklist asserted the presence of `docs/getting-started/first-time-setup.md` and `docs/getting-started/learning-paths.md`.
+> The `docs/getting-started/` directory does **not** exist in the current repository snapshot, so these files cannot be claimed as verified.
+
+- [ ] **docs/getting-started/first-time-setup.md** – Directory/file not present
+- [ ] **docs/getting-started/learning-paths.md** – Directory/file not present
+
+**Status: No getting started docs under `docs/getting-started/` are present; checklist corrected to avoid false assertions.** ✅
 ---
 
 ## 🧪 Functional Testing Results
