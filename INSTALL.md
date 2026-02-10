@@ -126,7 +126,7 @@ cd ..\..\..
 python scripts\python\health_check.py
 ```
 
-**Detailed guide:** [Windows Installation Guide](docs/installation/windows-install.md)
+**Detailed guide:** [Windows Installation Guide](#-windows-installation)
 
 ---
 
