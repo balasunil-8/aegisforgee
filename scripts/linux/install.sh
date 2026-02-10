@@ -19,6 +19,17 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
+
+# Enforce Python >= 3.8
+PY_MAJOR=${PYTHON_VERSION%%.*}
+PY_MINOR_PATCH=${PYTHON_VERSION#*.}
+PY_MINOR=${PY_MINOR_PATCH%%.*}
+
+if [ "$PY_MAJOR" -lt 3 ] || { [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -lt 8 ]; }; then
+    echo "ERROR: Python $PYTHON_VERSION detected"
+    echo "Python 3.8 or higher is required."
+    exit 1
+fi
 echo "✓ Python $PYTHON_VERSION detected"
 
 # Check disk space
